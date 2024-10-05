@@ -2,10 +2,16 @@ import os
 import time
 import requests
 import re
+import threading
+import concurrent.futures
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.options import Options
+
+lock = threading.Lock()
+pdfs = []
 
 def setup_directory(base_dir, *subfolders):
     """Creates nested subdirectories if they don't exist and returns the path."""
@@ -60,9 +66,62 @@ def generate_download_link(detail_url):
         print(f"Unable to generate download link for {detail_url}")
         return None
 
+def fetch_summary(link_href, link_text):
+    global pdfs
+    """Open a headless browser window to fetch summary text from the detail page asynchronously."""
+    try:
+        # Set Chrome options for headless browsing
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")  # Ensure the browser is headless
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+
+        driver = webdriver.Chrome(options=chrome_options)
+        wait = WebDriverWait(driver, 20)
+
+        # Visit the link and extract summary section
+        driver.get(link_href)
+        detailSection = wait.until(EC.presence_of_element_located((By.ID, "divDetailSummarySection")))
+        detailText = detailSection.text
+
+        with lock:
+            subdiv = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "inmg-detail-table")))
+            subsubdivs = subdiv.find_elements(By.XPATH, "./div")  # Find all divs inside subdiv
+            
+            d = {}
+            # Iterate through subsubdivs
+            for index, subsubdiv in enumerate(subsubdivs):
+                # Check if the subsubdiv is empty
+                if not subsubdiv.text.strip():  # Skip empty subsubdivs
+                    continue
+                
+                # Check if it's last or second last in the list
+                if index == len(subsubdivs) - 1 or index == len(subsubdivs) - 2 or index == len(subsubdivs) - 3:
+                    continue  # Skip last and second last subsubdivs
+
+                
+                key = subsubdiv.find_element(By.CLASS_NAME, "control-display-label")                
+                value = subsubdiv.find_element(By.CLASS_NAME, "field-item-content-span")
+                d[key.text] = value.text
+                # Print the data from the valid subsubdiv
+                print(f"Key: {key.text}, value: {value.text}")        
+            pdfs += [d]
+            # print(f"Detail for {link_text}:\n{detailText}\n")
+
+    except Exception as e:
+        print(f"Error accessing details for {link_text}: {e}")
+
+    finally:
+        driver.quit()
+
 def main():
     base_download_dir = "E:/Projects/Scraping"
-    driver = webdriver.Chrome()
+
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")  # Ensure the browser is headless
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    driver = webdriver.Chrome(options=chrome_options)
     try:
         driver.get('https://www.uwindsor.ca/registrar/')
         wait = WebDriverWait(driver, 20)
@@ -117,24 +176,25 @@ def main():
         policyItems = resultsContainer.find_elements(By.CLASS_NAME, "citation-item-container")
 
         # Loop through each policy item and extract the link and text from the third <td> element
-        for item in policyItems:
-            # Locate the 3rd <td> within the <tr> of the <table>
-            linkElement = item.find_element(By.XPATH, ".//table/tbody/tr/td[3]/a")
-            linkText = linkElement.text
-            linkHref = linkElement.get_attribute("href")
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = []
+            for item in policyItems:
+                try:
+                    # Locate the 3rd <td> within the <tr> of the <table>
+                    linkElement = item.find_element(By.XPATH, ".//table/tbody/tr/td[3]/a")
+                    linkText = linkElement.text
+                    linkHref = linkElement.get_attribute("href")
 
-            print(linkText, linkHref)
-            print("----------")
+                    # Submit a new task to fetch summary using a headless browser
+                    futures.append(executor.submit(fetch_summary, linkHref, linkText))
 
-            # download_link = generate_download_link(linkHref)
-            # print(download_link)
-            
-            # if download_link:
-            #     # Set up a folder for downloads (you can customize this based on your needs)
-            #     folder = setup_directory(base_download_dir, "University Policies")
+                except Exception as e:
+                    print(f"Error processing policy: {e}")
 
-            #     # Download the PDF file
-            #     download_pdf(download_link, folder)
+            # Wait for all futures to complete
+            concurrent.futures.wait(futures)
+            print("All threads have completed their execution!")
+            print(pdfs)
 
     finally:
         driver.quit()
