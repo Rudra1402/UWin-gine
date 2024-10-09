@@ -1,2 +1,3 @@
 ./venv
 /uwingine/cloud/embeding-generation/.venv
+/.env
