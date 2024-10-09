@@ -166,8 +166,46 @@ def main():
 
         uniPolicies = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "University Bylaws & Policies")))
         uniPolicies.click()
-        senatePolicies = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Senate Policies")))
-        senatePolicies.click()
+        # senatePolicies = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Senate Policies")))
+        # senatePolicies.click()
+
+        # # Find the checkbox labeled "Active" under the "Status" filter
+        # activeCheckbox = wait.until(EC.element_to_be_clickable((By.ID, "lblSearch_231_Active")))
+        # activeCheckbox.click()
+
+        # # Wait for the filter to apply and the results to load
+        # time.sleep(10)  # Adjust the sleep time if necessary depending on page load speed
+
+        # # Find the container holding the filtered results (id="ctPolicies-result-item-container")
+        # resultsContainer = wait.until(EC.presence_of_element_located((By.ID, "ctPolicies-result-item-container")))
+
+        # # Find all elements with class="citation-item-container" inside the results container
+        # policyItems = resultsContainer.find_elements(By.CLASS_NAME, "citation-item-container")
+
+        # # Loop through each policy item and extract the link and text from the third <td> element
+        # with concurrent.futures.ThreadPoolExecutor() as executor:
+        #     futures = []
+        #     for item in policyItems:
+        #         try:
+        #             # Locate the 3rd <td> within the <tr> of the <table>
+        #             linkElement = item.find_element(By.XPATH, ".//table/tbody/tr/td[3]/a")
+        #             linkText = linkElement.text
+        #             linkHref = linkElement.get_attribute("href")
+
+        #             # Submit a new task to fetch summary using a headless browser
+        #             futures.append(executor.submit(fetch_summary, linkHref, linkText))
+
+        #         except Exception as e:
+        #             print(f"Error processing policy: {e}")
+
+        #     # Wait for all futures to complete
+        #     concurrent.futures.wait(futures)
+        #     print("All threads have completed their execution!")
+        #     print(pdfs)
+
+        # ByLaws
+        byLaws = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Senate Bylaws")))
+        byLaws.click()
 
         # Find the checkbox labeled "Active" under the "Status" filter
         activeCheckbox = wait.until(EC.element_to_be_clickable((By.ID, "lblSearch_231_Active")))
