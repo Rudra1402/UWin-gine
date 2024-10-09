@@ -11,6 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 
 lock = threading.Lock()
+base_download_dir = "E:/Projects/Scraping"
 pdfs = []
 
 def setup_directory(base_dir, *subfolders):
@@ -39,31 +40,27 @@ def download_pdf(url, folder):
     else:
         print(f"Failed to download {url}. Status code: {response.status_code}")
 
-def generate_download_link(detail_url):
-    """
-    Generates the download link from the detailed policy link.
-    Example:
-    Detail URL: 
-    'https://lawlibrary.uwindsor.ca/Presto/content/Detail.aspx?ctID=OTdhY2QzODgtNjhlYi00ZWY0LTg2OTUtNmU5NjEzY2JkMWYx&rID=MTE=&qrs=RmFsc2U=&q=...'
+def download_dynamic_pdf(url, folder, filename):
+    """Downloads a dynamically generated PDF from a URL and saves it with a specified filename."""
+    file_path = os.path.join(folder, filename)
+
+    # Check if the file already exists
+    if os.path.exists(file_path):
+        print(f"{filename} already exists in {folder}, skipping download.")
+        return file_path
+
+    # Send a GET request to the provided URL
+    response = requests.get(url, stream=True)
     
-    Expected download link: 
-    'https://lawlibrary.uwindsor.ca/Presto//GetDoc.axd?ctID=OTdhY2QzODgtNjhlYi00ZWY0LTg2OTUtNmU5NjEzY2JkMWYx&rID=MTE=&pID=MjMy&attchmnt=False&uSesDM=False&rIdx=MTE=&rCFU='
-    """
-    base_url = 'https://lawlibrary.uwindsor.ca/Presto//GetDoc.axd'
-    
-    # Extract the relevant parameters (rID, ctID, etc.) from the detail URL
-    rID_match = re.search(r'rID=([^&]+)', detail_url)
-    ctID_match = re.search(r'ctID=([^&]+)', detail_url)
-    
-    if rID_match and ctID_match:
-        rID = rID_match.group(1)
-        ctID = ctID_match.group(1)
-        
-        # Construct the download URL with appropriate parameters
-        download_url = f"{base_url}?ctID={ctID}&rID={rID}&pID=MjMy&attchmnt=False&uSesDM=False&rIdx={rID}&rCFU="
-        return download_url
+    if response.status_code == 200:
+        # Write the content to a file
+        with open(file_path, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        print(f"Downloaded {filename} to {folder}")
+        return file_path
     else:
-        print(f"Unable to generate download link for {detail_url}")
+        print(f"Failed to download from {url}. Status code: {response.status_code}")
         return None
 
 def fetch_summary(link_href, link_text):
@@ -96,15 +93,26 @@ def fetch_summary(link_href, link_text):
                     continue
                 
                 # Check if it's last or second last in the list
-                if index == len(subsubdivs) - 1 or index == len(subsubdivs) - 2 or index == len(subsubdivs) - 3:
+                if index == len(subsubdivs) - 1 or index == len(subsubdivs) - 2:
                     continue  # Skip last and second last subsubdivs
-
-                
-                key = subsubdiv.find_element(By.CLASS_NAME, "control-display-label")                
-                value = subsubdiv.find_element(By.CLASS_NAME, "field-item-content-span")
-                d[key.text] = value.text
-                # Print the data from the valid subsubdiv
-                print(f"Key: {key.text}, value: {value.text}")        
+                elif index == len(subsubdivs) - 3:
+                    pdfLinks = subsubdiv.find_elements(By.CLASS_NAME, "File")
+                    link = pdfLinks[0].get_attribute("href")
+                    d["Live Link"] = link
+                    folder = setup_directory(base_download_dir, "Senate Policies")
+                    
+                    rID_match = re.search(r'rID=([^&]+)', link)
+                    if rID_match:
+                        filename = f"Policy_{rID_match.group(1)}.pdf"
+                        local_path = download_dynamic_pdf(link, folder, filename)
+                        if local_path:
+                            d["Local Path"] = local_path
+                else:
+                    key = subsubdiv.find_element(By.CLASS_NAME, "control-display-label")                
+                    value = subsubdiv.find_element(By.CLASS_NAME, "field-item-content-span")
+                    d[key.text] = value.text
+                    # Print the data from the valid subsubdiv
+                    print(f"Key: {key.text}, value: {value.text}")        
             pdfs += [d]
             # print(f"Detail for {link_text}:\n{detailText}\n")
 
@@ -115,7 +123,6 @@ def fetch_summary(link_href, link_text):
         driver.quit()
 
 def main():
-    base_download_dir = "E:/Projects/Scraping"
 
     chrome_options = Options()
     chrome_options.add_argument("--headless")  # Ensure the browser is headless
