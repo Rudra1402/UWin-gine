@@ -99,14 +99,14 @@ def fetch_summary(link_href, link_text):
                     pdfLinks = subsubdiv.find_elements(By.CLASS_NAME, "File")
                     link = pdfLinks[0].get_attribute("href")
                     d["Live Link"] = link
-                    folder = setup_directory(base_download_dir, "Senate Policies")
+                    # folder = setup_directory(base_download_dir, "Senate Policies")
                     
-                    rID_match = re.search(r'rID=([^&]+)', link)
-                    if rID_match:
-                        filename = f"Policy_{rID_match.group(1)}.pdf"
-                        local_path = download_dynamic_pdf(link, folder, filename)
-                        if local_path:
-                            d["Local Path"] = local_path
+                    # rID_match = re.search(r'rID=([^&]+)', link)
+                    # if rID_match:
+                    #     filename = f"Policy_{rID_match.group(1)}.pdf"
+                        # local_path = download_dynamic_pdf(link, folder, filename)
+                        # if local_path:
+                        #     d["Local Path"] = local_path
                 else:
                     key = subsubdiv.find_element(By.CLASS_NAME, "control-display-label")                
                     value = subsubdiv.find_element(By.CLASS_NAME, "field-item-content-span")
@@ -132,76 +132,76 @@ def main():
     try:
         driver.get('https://www.uwindsor.ca/registrar/')
         wait = WebDriverWait(driver, 20)
-        # academic_calendars_link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Academic Calendars")))
-        # academic_calendars_link.click()
-        # wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "a[href$='.pdf']")))
+        academic_calendars_link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Academic Calendars")))
+        academic_calendars_link.click()
+        wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "a[href$='.pdf']")))
 
-        # # Diagnostic to see how many links are found on the page
-        # all_pdfs = driver.find_elements(By.CSS_SELECTOR, "a[href$='.pdf']")
-        # print(f"Total PDF links found: {len(all_pdfs)}")
+        # Diagnostic to see how many links are found on the page
+        all_pdfs = driver.find_elements(By.CSS_SELECTOR, "a[href$='.pdf']")
+        print(f"Total PDF links found: {len(all_pdfs)}")
 
-        # # Specific handling for current and prior year PDFs
-        # for pdf_link in all_pdfs:
-        #     url = pdf_link.get_attribute('href')
-        #     filename = url.split('/')[-1]
-        #     print(f"Processing {url}")
+        # Specific handling for current and prior year PDFs
+        for pdf_link in all_pdfs:
+            url = pdf_link.get_attribute('href')
+            filename = url.split('/')[-1]
+            print(f"Processing {url}")
 
-        #     # Current year PDFs
-        #     if '2025' in url:
-        #         if "undergraduate" in url.lower():
-        #             folder = setup_directory(base_download_dir, "Undergraduate Calendar (Winter 2025)")
-        #         elif "graduate" in url.lower():
-        #             folder = setup_directory(base_download_dir, "Graduate Calendar (Winter 2025)")
-        #         download_pdf(url, folder)
-        #     # Prior years PDFs
-        #     else:
-        #         year_match = re.search(r'\d{4}', filename)
-        #         if year_match:
-        #             year = year_match.group(0)
-        #             if "undergraduate" in url.lower():
-        #                 folder = setup_directory(base_download_dir, "Prior Undergraduate Calendars", year)
-        #             elif "graduate" in url.lower():
-        #                 folder = setup_directory(base_download_dir, "Prior Graduate Calendars", year)
-        #             download_pdf(url, folder)
+            # Current year PDFs
+            if '2025' in url:
+                if "undergraduate" in url.lower():
+                    folder = setup_directory(base_download_dir, "Undergraduate Calendar (Winter 2025)")
+                elif "graduate" in url.lower():
+                    folder = setup_directory(base_download_dir, "Graduate Calendar (Winter 2025)")
+                download_pdf(url, folder)
+            # Prior years PDFs
+            else:
+                year_match = re.search(r'\d{4}', filename)
+                if year_match:
+                    year = year_match.group(0)
+                    if "undergraduate" in url.lower():
+                        folder = setup_directory(base_download_dir, "Prior Undergraduate Calendars", year)
+                    elif "graduate" in url.lower():
+                        folder = setup_directory(base_download_dir, "Prior Graduate Calendars", year)
+                    download_pdf(url, folder)
 
         uniPolicies = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "University Bylaws & Policies")))
         uniPolicies.click()
-        # senatePolicies = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Senate Policies")))
-        # senatePolicies.click()
+        senatePolicies = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Senate Policies")))
+        senatePolicies.click()
 
-        # # Find the checkbox labeled "Active" under the "Status" filter
-        # activeCheckbox = wait.until(EC.element_to_be_clickable((By.ID, "lblSearch_231_Active")))
-        # activeCheckbox.click()
+        # Find the checkbox labeled "Active" under the "Status" filter
+        activeCheckbox = wait.until(EC.element_to_be_clickable((By.ID, "lblSearch_231_Active")))
+        activeCheckbox.click()
 
-        # # Wait for the filter to apply and the results to load
-        # time.sleep(10)  # Adjust the sleep time if necessary depending on page load speed
+        # Wait for the filter to apply and the results to load
+        time.sleep(10)  # Adjust the sleep time if necessary depending on page load speed
 
-        # # Find the container holding the filtered results (id="ctPolicies-result-item-container")
-        # resultsContainer = wait.until(EC.presence_of_element_located((By.ID, "ctPolicies-result-item-container")))
+        # Find the container holding the filtered results (id="ctPolicies-result-item-container")
+        resultsContainer = wait.until(EC.presence_of_element_located((By.ID, "ctPolicies-result-item-container")))
 
-        # # Find all elements with class="citation-item-container" inside the results container
-        # policyItems = resultsContainer.find_elements(By.CLASS_NAME, "citation-item-container")
+        # Find all elements with class="citation-item-container" inside the results container
+        policyItems = resultsContainer.find_elements(By.CLASS_NAME, "citation-item-container")
 
-        # # Loop through each policy item and extract the link and text from the third <td> element
-        # with concurrent.futures.ThreadPoolExecutor() as executor:
-        #     futures = []
-        #     for item in policyItems:
-        #         try:
-        #             # Locate the 3rd <td> within the <tr> of the <table>
-        #             linkElement = item.find_element(By.XPATH, ".//table/tbody/tr/td[3]/a")
-        #             linkText = linkElement.text
-        #             linkHref = linkElement.get_attribute("href")
+        # Loop through each policy item and extract the link and text from the third <td> element
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = []
+            for item in policyItems:
+                try:
+                    # Locate the 3rd <td> within the <tr> of the <table>
+                    linkElement = item.find_element(By.XPATH, ".//table/tbody/tr/td[3]/a")
+                    linkText = linkElement.text
+                    linkHref = linkElement.get_attribute("href")
 
-        #             # Submit a new task to fetch summary using a headless browser
-        #             futures.append(executor.submit(fetch_summary, linkHref, linkText))
+                    # Submit a new task to fetch summary using a headless browser
+                    futures.append(executor.submit(fetch_summary, linkHref, linkText))
 
-        #         except Exception as e:
-        #             print(f"Error processing policy: {e}")
+                except Exception as e:
+                    print(f"Error processing policy: {e}")
 
-        #     # Wait for all futures to complete
-        #     concurrent.futures.wait(futures)
-        #     print("All threads have completed their execution!")
-        #     print(pdfs)
+            # Wait for all futures to complete
+            concurrent.futures.wait(futures)
+            print("All threads have completed their execution!")
+            print(pdfs)
 
         # ByLaws
         byLaws = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Senate Bylaws")))
