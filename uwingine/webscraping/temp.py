@@ -5,17 +5,26 @@ import re
 import threading
 import concurrent.futures
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 
-class PDFDownloader:
-    """Handles downloading of PDFs, both static and dynamic."""
-    def __init__(self, base_download_dir):
+class Scraper:
+    def __init__(self, base_download_dir="E:/Projects/Scraping"):
         self.base_download_dir = base_download_dir
         self.lock = threading.Lock()
+        self.driver = self._setup_browser()
+        self.wait = WebDriverWait(self.driver, 20)
+        self.pdfs = []
+
+    def _setup_browser(self):
+        """Set up Chrome options for headless browsing."""
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        return webdriver.Chrome(options=chrome_options)
 
     def setup_directory(self, *subfolders):
         """Creates nested subdirectories if they don't exist and returns the path."""
@@ -43,7 +52,7 @@ class PDFDownloader:
             print(f"Failed to download {url}. Status code: {response.status_code}")
 
     def download_dynamic_pdf(self, url, folder, filename):
-        """Downloads a dynamically generated PDF from a URL and saves it with a specified filename."""
+        """Downloads a dynamically generated PDF and saves it with a specified filename."""
         file_path = os.path.join(folder, filename)
 
         if os.path.exists(file_path):
@@ -61,149 +70,127 @@ class PDFDownloader:
             print(f"Failed to download from {url}. Status code: {response.status_code}")
             return None
 
-class Scraper:
-    """Handles the scraping process and parsing of Senate Policies and Bylaws."""
-    def __init__(self):
-        self.pdf_downloader = PDFDownloader("E:/Projects/Scraping")
-        self.pdfs = []
-        self.setup_webdriver()
+    def fetch_summary(self, link_href, link_text, text):
+        """Opens a headless browser to fetch summary text from a detail page asynchronously."""
+        try:
+            driver = self._setup_browser()
+            wait = WebDriverWait(driver, 20)
 
-    def setup_webdriver(self):
-        """Initializes the Chrome webdriver with headless options."""
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        self.driver = webdriver.Chrome(options=chrome_options)
-        self.wait = WebDriverWait(self.driver, 20)
+            driver.get(link_href)
+            detail_section = wait.until(EC.presence_of_element_located((By.ID, "divDetailSummarySection")))
+            detail_text = detail_section.text
 
-    def fetch_policies(self, link_text):
-        """Fetches details for either Senate Policies or Bylaws."""
-        driver = self.driver.get('https://www.uwindsor.ca/registrar/')
-        wait = WebDriverWait(driver, 20)
-        uniPolicies = self.wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "University Bylaws & Policies")))
-        uniPolicies.click()
-        senatePolicies = self.wait.until(EC.element_to_be_clickable((By.LINK_TEXT, link_text)))
-        senatePolicies.click()
+            with self.lock:
+                subdiv = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "inmg-detail-table")))
+                subsubdivs = subdiv.find_elements(By.XPATH, "./div")
+                
+                d = {}
+                for index, subsubdiv in enumerate(subsubdivs):
+                    if not subsubdiv.text.strip():
+                        continue
+                    if index in (len(subsubdivs) - 1, len(subsubdivs) - 2):
+                        continue
+                    elif index == len(subsubdivs) - 3:
+                        pdf_links = subsubdiv.find_elements(By.CLASS_NAME, "File")
+                        link = pdf_links[0].get_attribute("href")
+                        d["Live Link"] = link
+                        folder = self.setup_directory(text)
 
-        results_container = self.wait.until(EC.presence_of_element_located((By.ID, "ctPolicies-result-item-container")))
-        print(len(results_container))
-        policy_items = results_container.find_elements(By.CLASS_NAME, "citation-item-container")
+                        rID_match = re.search(r'rID=([^&]+)', link)
+                        if rID_match:
+                            filename = f"Policy_{rID_match.group(1)}.pdf"
+                            local_path = self.download_dynamic_pdf(link, folder, filename)
+                            if local_path:
+                                d["Local Path"] = local_path
+                    else:
+                        key = subsubdiv.find_element(By.CLASS_NAME, "control-display-label")                
+                        value = subsubdiv.find_element(By.CLASS_NAME, "field-item-content-span")
+                        d[key.text] = value.text
+                        print(f"Key: {key.text}, value: {value.text}")
+                
+                self.pdfs.append(d)
+        except Exception as e:
+            print(f"Error accessing details for {link_text}: {e}")
+        finally:
+            driver.quit()
 
+    def fetch_policies(self, link_text, link_href, text):
+        """Handles policy items and their details concurrently."""
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = [
-                executor.submit(self.fetch_policy_summary, item, link_text) for item in policy_items
-            ]
+            futures = [executor.submit(self.fetch_summary, link_href, link_text, text)]
             concurrent.futures.wait(futures)
 
-        print(f"Completed fetching {link_text}.")
-        print(self.pdfs)
-
-    def filter_active_policies(self):
-        """Filters policies based on the 'Active' status."""
-        try:
-            # Locate the checkbox with different strategies (ID, CSS_SELECTOR, etc.)
-            active_checkbox = self.wait.until(EC.element_to_be_clickable((By.ID, "lblSearch_231_Active")))
-            active_checkbox.click()
-            time.sleep(10)  # Adjust for page load
-
-        except TimeoutException:
-            print("TimeoutException: Unable to locate the 'Active' checkbox. Retrying with a different method...")
-
-            # Attempt to locate the element using a different method if the ID approach fails
-            try:
-                active_checkbox = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "input[value='Active']")))
-                active_checkbox.click()
-                time.sleep(10)  # Adjust for page load
-            except TimeoutException:
-                print("TimeoutException: Could not locate 'Active' checkbox using alternative method. Please check the element's selector.")
-
-    def fetch_policy_summary(self, item, policy_type):
-        """Fetches the summary of an individual policy."""
-        try:
-            link_element = item.find_element(By.XPATH, ".//table/tbody/tr/td[3]/a")
-            link_href = link_element.get_attribute("href")
-            self.scrape_policy_details(link_href, policy_type)
-        except Exception as e:
-            print(f"Error processing policy: {e}")
-
-    def scrape_policy_details(self, link_href, policy_type):
-        """Opens the policy page and extracts necessary information."""
-        try:
-            self.driver.get(link_href)
-            detail_section = self.wait.until(EC.presence_of_element_located((By.ID, "divDetailSummarySection")))
-            subdiv = self.wait.until(EC.presence_of_element_located((By.CLASS_NAME, "inmg-detail-table")))
-
-            policy_data = {}
-            subsubdivs = subdiv.find_elements(By.XPATH, "./div")
-            for index, subsubdiv in enumerate(subsubdivs):
-                if not subsubdiv.text.strip() or index in [len(subsubdivs) - 1, len(subsubdivs) - 2]:
-                    continue
-                elif index == len(subsubdivs) - 3:
-                    pdf_link = subsubdiv.find_elements(By.CLASS_NAME, "File")[0].get_attribute("href")
-                    policy_data["Live Link"] = pdf_link
-
-                    # Download the PDF
-                    folder = self.pdf_downloader.setup_directory(policy_type)
-                    pdf_filename = f"{policy_type}_{re.search(r'rID=([^&]+)', pdf_link).group(1)}.pdf"
-                    local_path = self.pdf_downloader.download_pdf(pdf_link, folder)
-                    if local_path:
-                        policy_data["Local Path"] = local_path
-                else:
-                    key = subsubdiv.find_element(By.CLASS_NAME, "control-display-label").text
-                    value = subsubdiv.find_element(By.CLASS_NAME, "field-item-content-span").text
-                    policy_data[key] = value
-
-            self.pdfs.append(policy_data)
-
-        except Exception as e:
-            print(f"Error fetching details for {link_href}: {e}")
-
-
-    def download_academic_calendars(self):
-        """Downloads academic calendar PDFs."""
+    def get_academic_calendars(self):
+        """Scrapes academic calendars from the website."""
         self.driver.get('https://www.uwindsor.ca/registrar/')
         academic_calendars_link = self.wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Academic Calendars")))
         academic_calendars_link.click()
+        self.wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "a[href$='.pdf']")))
 
-        pdf_links = self.driver.find_elements(By.CSS_SELECTOR, "a[href$='.pdf']")
-        for pdf_link in pdf_links:
+        all_pdfs = self.driver.find_elements(By.CSS_SELECTOR, "a[href$='.pdf']")
+        print(f"Total PDF links found: {len(all_pdfs)}")
+
+        for pdf_link in all_pdfs:
             url = pdf_link.get_attribute('href')
-            self.process_academic_calendar_pdf(url)
+            filename = url.split('/')[-1]
+            print(f"Processing {url}")
 
-    def process_academic_calendar_pdf(self, url):
-        """Processes and downloads the PDF based on the type (undergraduate/graduate, current/prior)."""
-        filename = url.split('/')[-1]
-        if '2025' in url:
-            if "undergraduate" in url.lower():
-                folder = self.pdf_downloader.setup_directory("Undergraduate Calendar (Winter 2025)")
-            else:
-                folder = self.pdf_downloader.setup_directory("Graduate Calendar (Winter 2025)")
-        else:
-            year_match = re.search(r'\d{4}', filename)
-            if year_match:
-                year = year_match.group(0)
+            if '2025' in url:
                 if "undergraduate" in url.lower():
-                    folder = self.pdf_downloader.setup_directory("Prior Undergraduate Calendars", year)
-                else:
-                    folder = self.pdf_downloader.setup_directory("Prior Graduate Calendars", year)
+                    folder = self.setup_directory("Undergraduate Calendar (Winter 2025)")
+                elif "graduate" in url.lower():
+                    folder = self.setup_directory("Graduate Calendar (Winter 2025)")
+                self.download_pdf(url, folder)
+            else:
+                year_match = re.search(r'\d{4}', filename)
+                if year_match:
+                    year = year_match.group(0)
+                    if "undergraduate" in url.lower():
+                        folder = self.setup_directory("Prior Undergraduate Calendars", year)
+                    elif "graduate" in url.lower():
+                        folder = self.setup_directory("Prior Graduate Calendars", year)
+                    self.download_pdf(url, folder)
 
-        self.pdf_downloader.download_pdf(url, folder)
+    def get_senate_policies(self, text):
+        """Scrapes senate policies from the website."""
+        self.driver.get("https://www.uwindsor.ca/registrar/")
+        self.wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "University Bylaws & Policies"))).click()
+        self.wait.until(EC.element_to_be_clickable((By.LINK_TEXT, text))).click()
 
-    def scrape_policies(self):
-        """Entry point to scrape Senate Policies and Bylaws."""
-        self.fetch_policies("Senate Policies")
-        self.fetch_policies("Senate Bylaws")
+        active_checkbox = self.wait.until(EC.element_to_be_clickable((By.ID, "lblSearch_231_Active")))
+        active_checkbox.click()
+
+        time.sleep(10)
+        results_container = self.wait.until(EC.presence_of_element_located((By.ID, "ctPolicies-result-item-container")))
+        policy_items = results_container.find_elements(By.CLASS_NAME, "citation-item-container")
+
+        for item in policy_items:
+            try:
+                link_element = item.find_element(By.XPATH, ".//table/tbody/tr/td[3]/a")
+                link_text = link_element.text
+                link_href = link_element.get_attribute("href")
+                self.fetch_policies(link_text, link_href, text)
+            except Exception as e:
+                print(f"Error processing policy: {e}")
 
     def close(self):
-        """Closes the webdriver."""
+        """Close the WebDriver."""
         self.driver.quit()
 
 def main():
     scraper = Scraper()
+
     try:
-        # scraper.download_academic_calendars()
-        scraper.scrape_policies()
+        # Scrape academic calendars
+        scraper.get_academic_calendars()
+
+        # Scrape senate policies
+        scraper.get_senate_policies("Senate Policies")
+        scraper.get_senate_policies("Senate Bylaws")
+
+        print("All scraping tasks completed!")
+        print(scraper.pdfs)
+        
     finally:
         scraper.close()
 

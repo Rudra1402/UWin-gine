@@ -99,14 +99,14 @@ def fetch_summary(link_href, link_text):
                     pdfLinks = subsubdiv.find_elements(By.CLASS_NAME, "File")
                     link = pdfLinks[0].get_attribute("href")
                     d["Live Link"] = link
-                    # folder = setup_directory(base_download_dir, "Senate Policies")
+                    folder = setup_directory(base_download_dir, "Senate Policies")
                     
-                    # rID_match = re.search(r'rID=([^&]+)', link)
-                    # if rID_match:
-                    #     filename = f"Policy_{rID_match.group(1)}.pdf"
-                        # local_path = download_dynamic_pdf(link, folder, filename)
-                        # if local_path:
-                        #     d["Local Path"] = local_path
+                    rID_match = re.search(r'rID=([^&]+)', link)
+                    if rID_match:
+                        filename = f"Policy_{rID_match.group(1)}.pdf"
+                        local_path = download_dynamic_pdf(link, folder, filename)
+                        if local_path:
+                            d["Local Path"] = local_path
                 else:
                     key = subsubdiv.find_element(By.CLASS_NAME, "control-display-label")                
                     value = subsubdiv.find_element(By.CLASS_NAME, "field-item-content-span")
@@ -203,7 +203,9 @@ def main():
             print("All threads have completed their execution!")
             print(pdfs)
 
-        # ByLaws
+        # Bylaws
+        driver.get("https://www.uwindsor.ca/policies")
+
         byLaws = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Senate Bylaws")))
         byLaws.click()
 
