@@ -8,14 +8,16 @@ interface ChatLayoutProps {
 
 function ChatLayout({ children }: ChatLayoutProps) {
     return (
-        <div className='w-screen h-screen gap-0 flex'>
+        <div className='flex h-screen bg-gray-100'>
             <ChatList />
-            <div className='w-4/5 flex flex-col gap-0'>
+            <div className='flex-1 h-full flex flex-col bg-white shadow-lg overflow-hidden'>
                 <Navbar />
-                {children}
+                <div className='flex-1 p-4 overflow-y-auto'>
+                    {children}
+                </div>
             </div>
         </div>
     )
 }
 
-export default ChatLayout
+export default ChatLayout;
