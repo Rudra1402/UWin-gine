@@ -1,0 +1,15 @@
+faiss-cpu
+groq
+langchain-groq
+PyPDF2
+langchain_google_genai
+langchain
+langchain_community
+python-dotenv
+pypdf
+langchain-huggingface
+langchain_experimental
+langgraph
+psycopg[binary,pool]
+tiktoken
+langchain-postgres
