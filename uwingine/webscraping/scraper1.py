@@ -67,7 +67,7 @@ class Scraper:
             s3_url = self.s3_manager.upload_file(file_path)
             obj = {
                 "type": "academic_calendar",
-                "title": filename,
+                "title": filename.replace(".pdf", ""),
                 "live_link": url,
                 "local_path": file_path,
                 "created_at": int(time.time() * 1000),
@@ -101,7 +101,7 @@ class Scraper:
         """Opens a headless browser to fetch summary text from a detail page asynchronously."""
         try:
             driver = self._setup_browser()
-            wait = WebDriverWait(driver, 45)
+            wait = WebDriverWait(driver, 30)
 
             driver.get(link_href)
             detail_section = wait.until(EC.presence_of_element_located(
@@ -126,15 +126,18 @@ class Scraper:
                         d["live_link"] = link
                         folder = self.setup_directory(text)
 
-                        rID_match = re.search(r'rID=([^&]+)', link)
-                        if rID_match:
-                            filename = f"Policy_{rID_match.group(1)}.pdf"
-                            local_path = self.download_dynamic_pdf(
-                                link, folder, filename)
-                            if local_path:
-                                d["local_path"] = local_path
-                                s3_url = self.s3_manager.upload_file(local_path)
-                                d["s3_url"] = s3_url
+                        # rID_match = re.search(r'rID=([^&]+)', link)
+                        # if rID_match:
+                            # filename = f"Policy_{rID_match.group(1)}.pdf"
+                            # key = subsubdiv.find_element(
+                            #     By.CLASS_NAME, "control-display-label")
+                            # filename = f"Policy_{key.text}.pdf"
+                            # local_path = self.download_dynamic_pdf(
+                            #     link, folder, filename)
+                            # if local_path:
+                            #     d["local_path"] = local_path
+                                # s3_url = self.s3_manager.upload_file(local_path)
+                                # d["s3_url"] = s3_url
                     else:
                         key = subsubdiv.find_element(
                             By.CLASS_NAME, "control-display-label")
@@ -142,6 +145,13 @@ class Scraper:
                             By.CLASS_NAME, "field-item-content-span")
                         d[self.convert_text_to_key(key.text)] = value.text
                 
+                #download pdf
+                filename = f"{link_text}.pdf"
+                local_path = self.download_dynamic_pdf(link_href, folder, filename)
+                if local_path:
+                    d["local_path"] = local_path
+                    s3_url = self.s3_manager.upload_file(local_path)
+                    d["s3_url"] = s3_url
                 d['type'] = self.convert_text_to_key(text)
                 d['created_at'] = int(time.time() * 1000)
                 print(f"Item {link_text}:\n {d}")
@@ -241,8 +251,6 @@ def main():
         # Scrape senate policies
         scraper.get_senate_policies("Senate Policies")
         scraper.get_senate_policies("Senate Bylaws")
-
-        # print(scraper.pdfs)
 
         for pdf in scraper.pdfs:
             print(pdf)
