@@ -111,7 +111,7 @@ async def main():
 
     model_obj._initialize_semantic_chunker(breakpoint_threshold_type="percentile")
     
-    connection = "postgresql+psycopg://langchain:langchain@postgres:5432/langchain"
+    connection = "postgresql+psycopg://langchain:langchain@localhost:6024/langchain"  # Uses psycopg3!
     collection_name = "my_docs"
 
     vector_store = PGVector(
@@ -121,7 +121,7 @@ async def main():
         use_jsonb=True,
     )
     vector_store.add_documents(model_obj._semantic_chunks)
-    print("Vector store created: ", vector_store)
+    print(vector_store)
 
 if __name__ == "__main__":
     asyncio.run(main())
