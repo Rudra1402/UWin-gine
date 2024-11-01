@@ -1,0 +1,36 @@
+FROM amazon/aws-lambda-python:3.12
+
+# Create custom temp, profile, and cache directories
+RUN mkdir -p /mnt/tmp /mnt/data /mnt/cache /mnt/profile
+
+# Install chrome dependencies
+RUN dnf install -y atk cups-libs gtk3 libXcomposite alsa-lib \
+    libXcursor libXdamage libXext libXi libXrandr libXScrnSaver \
+    libXtst pango at-spi2-atk libXt xorg-x11-server-Xvfb \
+    xorg-x11-xauth dbus-glib dbus-glib-devel nss mesa-libgbm jq unzip
+
+# Install Chrome
+COPY ./chrome-installer.sh ./chrome-installer.sh
+RUN chmod +x ./chrome-installer.sh
+RUN ./chrome-installer.sh
+# RUN rm ./chrome-installer.sh
+
+# Copy requirements.txt
+COPY requirements.txt ${LAMBDA_TASK_ROOT}
+
+# Install the specified packages
+RUN pip install -r requirements.txt
+
+# Copy function code
+COPY scraper.py ${LAMBDA_TASK_ROOT}
+
+# Set the TMPDIR for Chrome
+# ENV TMPDIR=/mnt/tmp
+
+# Add path variable for chrome-driver
+ENV PATH="/opt/chrome-driver/chromedriver-linux64/chromedriver:${PATH}"
+
+ENV AWS_LAMBDA_FUNCTION_TIMEOUT=600
+
+# Set the CMD to your handler (could also be done as a parameter override outside of the Dockerfile)
+CMD [ "scraper.handler" ]
