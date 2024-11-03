@@ -16,11 +16,11 @@ export const handleSignup = async (e, formData, setFormData) => {
             toast.error('Signup failed!', {
                 autoClose: 2000
             });
-            throw new Error('Signup failed');
+            return
         }
 
         const data = await response.json();
-        console.log('User signed up successfully:', data);
+        
         setFormData({
             first_name: '',
             last_name: '',
@@ -52,12 +52,22 @@ export const handleLogin = async (e, loginData, setLoginData) => {
             toast.error('Login failed!', {
                 autoClose: 2000
             });
-            throw new Error('Login failed');
+            return
         }
 
+
         const data = await response.json();
-        console.log('User logged in successfully:', data);
-        setFormData({
+        
+        console.log(data);
+        
+        if(data?.stat == "error") {
+            toast.error('Invalid credentials!', {
+                autoClose: 2000
+            })
+            return
+        }
+
+        setLoginData({
             email: '',
             password: '',
         })
