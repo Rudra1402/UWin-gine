@@ -147,7 +147,7 @@ class ChatModelQnA():
         self._question_answer_chain = create_stuff_documents_chain(self._model, self._prompt)
         self._rag_chain = create_retrieval_chain(self._history_aware_retriever, self._question_answer_chain)
 
-def main(thread_id: str, question: str):
+def main(thread_id: str, question: str) -> dict:
     """
         Main function
     """
@@ -191,6 +191,7 @@ def main(thread_id: str, question: str):
     response['answer'] = result['answer']
     response['user_id'] = thread_id
     print("Response: \n", response)
+    return response
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run the ChatModelQnA with a thread ID and question.")
