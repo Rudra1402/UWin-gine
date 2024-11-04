@@ -15,7 +15,7 @@ import jwt
 
 load_dotenv()
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'llm')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'llm')))
 from llm_model_qna import main
 
 router = APIRouter()
@@ -30,6 +30,10 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, os.getenv("SECRET_KEY"), algorithm=os.getenv("ALGORITHM"))
     return encoded_jwt
+
+@router.get("/")
+async def root():
+    return {"message": "Welcome to the API! The server is up and running."}
 
 @router.post(
     "/signup/",
