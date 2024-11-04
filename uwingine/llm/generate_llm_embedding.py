@@ -102,26 +102,39 @@ async def main():
     embedding_model_name = "sentence-transformers/all-MiniLM-L6-v2"
     temperature = 0.1
 
+    print("initializing model..")
+
     model_obj = ChatModelEmbedding()
     model_obj._initialize_api("GROQ_API_KEY", "HF_TOKEN")
     model_obj._initialize_model(model_name=model_name, temperature=temperature, embedding_model_name=embedding_model_name)
 
-    file_paths = ["auditing_courses_0.pdf","academic_accommodation_for_students_with_disabilities_amended_july_17_2017.pdf"]
+    # file_paths = ["auditing_courses_0.pdf","academic_accommodation_for_students_with_disabilities_amended_july_17_2017.pdf"]
+    print("Extracting PDF names..")
+    
+    file_paths = os.listdir("docs")
+    file_paths = ["docs/"+x for x in file_paths if x.endswith('.pdf')]
+    # file_paths
+
+    print("Loading PDFs...")
     await model_obj._load_pdfs(file_paths)
 
+    print("Creating chunks...")
     model_obj._initialize_semantic_chunker(breakpoint_threshold_type="percentile")
     
-    connection = "postgresql+psycopg://langchain:langchain@postgres:5432/langchain"  # Uses psycopg3!
+    # connection = "postgresql+psycopg://langchain:langchain@postgres:5432/langchain"
+    connection="postgresql+psycopg://langchain:langchain321@54.147.167.63:5432/langchain"
     collection_name = "my_docs"
 
-    vector_store = PGVector(
-        embeddings=model_obj._embeddings,
-        collection_name=collection_name,
-        connection=connection,
-        use_jsonb=True,
-    )
-    vector_store.add_documents(model_obj._semantic_chunks)
-    print("Vector store created: ", vector_store)
+    print(model_obj._semantic_chunks[:2])
+
+    # vector_store = PGVector(
+    #     embeddings=model_obj._embeddings,
+    #     collection_name=collection_name,
+    #     connection=connection,
+    #     use_jsonb=True,
+    # )
+    # vector_store.add_documents(model_obj._semantic_chunks)
+    # print("Vector store created: ", vector_store)
 
 if __name__ == "__main__":
     asyncio.run(main())
