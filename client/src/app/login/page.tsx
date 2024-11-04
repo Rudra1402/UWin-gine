@@ -3,12 +3,15 @@
 import Image from 'next/image';
 import Link from 'next/link'
 import React, { useState } from 'react'
+import {useRouter} from 'next/navigation'
 import logo from "../../assets/images/landscape.png"
 import { handleLogin } from '@/apis/userApis';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 function Login() {
+
+  const router = useRouter()
 
   const [loginData, setLoginData] = useState({
     email: '',
@@ -38,7 +41,7 @@ function Login() {
         <h2 className="text-3xl font-semibold text-gray-700">Welcome back</h2>
         <form
           className="w-full flex flex-col gap-5 text-gray-700"
-          onSubmit={e => handleLogin(e, loginData, setLoginData)}
+          onSubmit={e => handleLogin(e, loginData, setLoginData, router)}
         >
           <input
             type="email"

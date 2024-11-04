@@ -36,7 +36,7 @@ export const handleSignup = async (e, formData, setFormData) => {
     }
 };
 
-export const handleLogin = async (e, loginData, setLoginData) => {
+export const handleLogin = async (e, loginData, setLoginData, router) => {
     e.preventDefault();
 
     try {
@@ -71,6 +71,7 @@ export const handleLogin = async (e, loginData, setLoginData) => {
             email: '',
             password: '',
         })
+        router.push("/")
         toast.success('Login success!', {
             autoClose: 2000
         });

@@ -1,17 +1,22 @@
+import sys
 import os
 from dotenv import load_dotenv
 from typing import Optional
 from fastapi import APIRouter, Body, HTTPException, status, Response
 from pydantic import EmailStr
 from bson import ObjectId
-from pymongo.errors import PyMongoError
-from models.user_model import UserModel, LoginModel
+from pymongo.errors import PyMongoError, DuplicateKeyError
+from models.user_model import UserModel, LoginModel, QueryRequestModel
 from core.security import hash_password, verify_password
 from database.connection import user_collection
+from typing import Union
 from datetime import datetime, timedelta, timezone
 import jwt
 
 load_dotenv()
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'llm')))
+from llm_model_qna import main
 
 router = APIRouter()
 
@@ -20,7 +25,8 @@ def utc_now():
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
-    expire = utc_now() + (expires_delta or timedelta(minutes=os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")))
+    expire_minutes = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 15))  # Default to 15 minutes if not set
+    expire = utc_now() + (expires_delta or timedelta(minutes=expire_minutes))
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, os.getenv("SECRET_KEY"), algorithm=os.getenv("ALGORITHM"))
     return encoded_jwt
@@ -37,13 +43,19 @@ async def signup(user: UserModel = Body(...)):
         user.password = hash_password(user.password)
         new_user = await user_collection.insert_one(user.model_dump(by_alias=True, exclude=["id"]))
         created_user = await user_collection.find_one({"_id": new_user.inserted_id})
-        return {"stat": "success", "statusCode": 201, "data": created_user}
+
+        if created_user:
+            return UserModel(**created_user)
+    except DuplicateKeyError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"User registration failed: {str(e)}"
+        )
     except PyMongoError as e:
-        return {
-            "stat": "error",
-            "message": "Failed to register user due to a server error.",
-            "details": str(e)
-        }
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Server error during user registration: {str(e)}"
+        )
 
 @router.post(
     "/login/",
@@ -56,7 +68,12 @@ async def login(login_data: LoginModel = Body(...), response: Response = None):
         if user and verify_password(login_data.password, user["password"]):
             access_token = create_access_token(data={"user_id": str(user["_id"]), "email": user["email"]})
             response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True)
-            return {"stat": "success","message": "Login successful", "statusCode": 200}
+            return {
+                "stat": "success",
+                "message": "Login successful",
+                "statusCode": 200,
+                "access_token": access_token
+            }
         return {
             "stat": "error",
             "message": "Invalid credentials",
@@ -120,3 +137,36 @@ async def delete_user(id: str):
                 "message": "Invalid ID format",
                 "details": str(e)
             }
+
+@router.post(
+    "/chat/",
+    response_description="Process user query",
+    status_code=status.HTTP_200_OK
+)
+async def process_query(query_request: QueryRequestModel = Body(...), response: Response = None):
+    try:
+        # Validate user_id
+        user = await user_collection.find_one({"_id": ObjectId(query_request.thread_id)})
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"User with ID {query_request.thread_id} not found."
+            )
+        
+        print("Calling LLM!")
+        # Process the query (logic can be extended as needed)
+        d = main(thread_id=query_request.thread_id, question=query_request.question)
+
+        if not d or 'answer' not in d or d['answer'] is None:
+            raise ValueError("The main function returned an invalid response")
+
+        result = {
+            "message": f"Query '{d['answer']}' has been processed for user!"
+        }
+        
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while processing the query: {str(e)}"
+        )

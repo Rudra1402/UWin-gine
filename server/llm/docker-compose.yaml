@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: pgvector-container2
+    environment:
+      POSTGRES_USER: langchain
+      POSTGRES_PASSWORD: langchain
+      POSTGRES_DB: langchain
+    ports:
+      - "5432:5432"
+    networks:
+      - my_network
+
+  app:
+    build: .
+    container_name: embbeding-generator
+    depends_on:
+      - postgres
+    networks:
+      - my_network
+
+networks:
+  my_network:
