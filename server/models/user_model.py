@@ -17,19 +17,6 @@ class UserModel(BaseModel):
     email: EmailStr = Field(...)
     password: str = Field(...)
     user_type: str = Field(..., description="The type of user, e.g., 'admin' or 'regular' user")
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-        json_schema_extra={
-            "example": {
-                "first_name": "Jane",
-                "last_name": "Doe",
-                "email": "jane.doe@example.com",
-                "password": "securepassword",
-                "user_type": "Incoming Grad",
-            }
-        },
-    )
 
 class LoginModel(BaseModel):
     email: EmailStr = Field(...)
@@ -53,3 +40,7 @@ class ChatModel(BaseModel):
                 "message": "Hello! How can I help you today?"
             }
         }
+
+class QueryRequestModel(BaseModel):
+    thread_id: str
+    question: str
