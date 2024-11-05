@@ -13,14 +13,14 @@ import { useUserContext } from '@/context/context';
 function Login() {
 
   const router = useRouter()
-  const { user, setUser, isLoggedIn, setIsLoggedIn } = useUserContext();
+  const { setUser, setIsLoggedIn } = useUserContext();
 
   const [loginData, setLoginData] = useState({
     email: '',
     password: '',
   });
 
-  const handleInputChange = (e: any) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setLoginData((prevData) => ({
       ...prevData,
@@ -64,7 +64,7 @@ function Login() {
           </button>
         </form>
         <div className="text-gray-600">
-          Don't have an account?{' '}
+          Don<>&apos;</>t have an account?{" "}
           <Link href="/signup" className="text-blue-500 hover:underline">
             Sign Up
           </Link>

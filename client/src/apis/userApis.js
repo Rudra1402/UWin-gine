@@ -20,7 +20,7 @@ export const handleSignup = async (e, formData, setFormData) => {
         }
 
         const data = await response.json();
-        
+        console.log(data)
         setFormData({
             first_name: '',
             last_name: '',

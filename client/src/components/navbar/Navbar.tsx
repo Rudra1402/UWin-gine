@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import React from 'react'
 
-function Navbar({ isLoggedIn, user }: { isLoggedIn: boolean, user: any }) {
+function Navbar({ isLoggedIn}: { isLoggedIn: boolean }) {
 
   return (
     <div className='flex items-center justify-between px-6 py-4 border-b border-b-gray-300'>
