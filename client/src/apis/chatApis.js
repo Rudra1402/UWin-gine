@@ -2,7 +2,7 @@ import { toast } from "react-toastify";
 
 export const sendMessageApi = async (requestBody) => {
     try {
-        const response = await fetch('http://localhost:8000/user/chat', {
+        const response = await fetch('http://54.147.167.63:8000/user/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
