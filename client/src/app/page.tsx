@@ -13,7 +13,7 @@ function HomePage() {
 
   const handleLogout = () => {
     localStorage.removeItem('access_token');
-    localStorage.removeItem('user_data');
+    localStorage.removeItem('user');
     setUser(null);
     setIsLoggedIn(false);
   };

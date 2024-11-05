@@ -109,7 +109,7 @@ function Page() {
         <ChatLayout>
             <div className='flex flex-col gap-4 h-[calc(100%-60px)] overflow-auto pt-3 px-4'>
             {messages.length === 0 ? (
-                    <div className="text-center font-semibold text-3xl mb-6 text-gray-600 h-full w-full flex items-center justify-center">
+                    <div className="text-center font-semibold text-3xl mb-6 text-blue-700 h-full w-full flex items-center justify-center">
                         {"How can I help you today?"}
                     </div>
                 ) : (
