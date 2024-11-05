@@ -1,8 +1,8 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import Link from 'next/link'
-import UWingine from "../assets/images/UWingine_design.png"
+import UWingine from "../assets/images/uwingine_design.png"
 import Image from 'next/image'
 import Navbar from '@/components/navbar/LoginNavbar'
 import { useUserContext } from '@/context/context'

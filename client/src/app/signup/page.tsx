@@ -1,7 +1,7 @@
 "use client"
 
 import Link from 'next/link'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import logo from "../../assets/images/landscape.png"
 import Image from 'next/image';
 import { handleSignup } from '../../apis/userApis'
@@ -18,7 +18,7 @@ function Signup() {
         user_type: '',
     });
 
-    const handleInputChange = (e: any) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData((prevData) => ({
             ...prevData,
