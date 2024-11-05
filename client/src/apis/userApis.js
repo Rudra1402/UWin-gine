@@ -58,8 +58,6 @@ export const handleLogin = async (e, loginData, setLoginData, router) => {
 
         const data = await response.json();
         
-        console.log(data);
-        
         if(data?.stat == "error") {
             toast.error('Invalid credentials!', {
                 autoClose: 2000
@@ -71,6 +69,7 @@ export const handleLogin = async (e, loginData, setLoginData, router) => {
             email: '',
             password: '',
         })
+        localStorage.setItem("user", JSON.stringify(data))
         router.push("/")
         toast.success('Login success!', {
             autoClose: 2000

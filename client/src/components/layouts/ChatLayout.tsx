@@ -12,7 +12,7 @@ function ChatLayout({ children }: ChatLayoutProps) {
             <ChatList />
             <div className='flex-1 h-full flex flex-col bg-white shadow-lg overflow-hidden'>
                 <Navbar />
-                <div className='flex-1 p-4 overflow-y-auto'>
+                <div className='flex-1 p-0 overflow-y-auto'>
                     {children}
                 </div>
             </div>

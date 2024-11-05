@@ -37,6 +37,20 @@ function Page() {
             .trim();
     };
 
+    const animateResponse = (text: string) => {
+        let index = 0;
+        const intervalId = setInterval(() => {
+            setMessages(prevMessages => {
+                const updatedMessages = [...prevMessages];
+                updatedMessages[updatedMessages.length - 1].text = text.slice(0, index);
+                return updatedMessages;
+            });
+            index++;
+
+            if (index > text.length) clearInterval(intervalId);
+        }, 10);
+    };
+
     const sendMessage = async (): Promise<void> => {
         if (currentMessage.trim() === '' || isSending) return;
 
@@ -78,6 +92,8 @@ function Page() {
                     isUser: false
                 }
             ]);
+
+            animateResponse(cleanedMessage);
         } catch (error) {
             console.error('Failed to send message:', error);
             setMessages(prevMessages => [
@@ -91,34 +107,40 @@ function Page() {
 
     return (
         <ChatLayout>
-            <div className='flex flex-col gap-4 h-[calc(100%-48px)] overflow-auto p-4'>
-                {messages.map((message, index) =>
-                    message.loading ? (
-                        <div key={index} className="flex justify-start items-center">
-                            <div className="space-x-2 flex">
-                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-dot-flashing"></div>
-                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-dot-flashing"></div>
-                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-dot-flashing"></div>
+            <div className='flex flex-col gap-4 h-[calc(100%-60px)] overflow-auto pt-3 px-4'>
+            {messages.length === 0 ? (
+                    <div className="text-center font-semibold text-3xl mb-6 text-gray-600 h-full w-full flex items-center justify-center">
+                        {"How can I help you today?"}
+                    </div>
+                ) : (
+                    messages.map((message, index) =>
+                        message.loading ? (
+                            <div key={index} className="flex justify-start items-center">
+                                <div className="space-x-2 flex">
+                                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-dot-flashing"></div>
+                                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-dot-flashing"></div>
+                                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-dot-flashing"></div>
+                                </div>
                             </div>
-                        </div>
-                    ) : (
-                        <div key={index} className={`max-w-[75%] px-4 py-3 ${message.isUser ? 'bg-gray-100 ml-auto' : 'bg-blue-100'} rounded-lg shadow`}>
-                            {message.isUser ? (
-                                <p>{message.text}</p>
-                            ) : (
-                                <ReactMarkdown>{message.text}</ReactMarkdown>
-                            )}
-                        </div>
+                        ) : (
+                            <div key={index} className={`max-w-[75%] px-4 py-3 ${message.isUser ? 'bg-gray-100 ml-auto' : 'bg-blue-100'} rounded-lg shadow`}>
+                                {message.isUser ? (
+                                    <p className='text-gray-700'>{message.text}</p>
+                                ) : (
+                                    <ReactMarkdown className={'text-gray-700'}>{message.text}</ReactMarkdown>
+                                )}
+                            </div>
+                        )
                     )
                 )}
                 <div ref={messagesEndRef} />
             </div>
-            <div className='flex items-center gap-2 h-12 w-full p-4'>
+            <div className='flex items-center gap-2 h-12 w-full p-4 mb-2.5'>
                 <input
                     id='chat-message'
                     name='chat-message'
                     type="text"
-                    className='flex-1 rounded-md p-3 border border-gray-300 bg-gray-100'
+                    className='flex-1 rounded-md p-3 border border-gray-300 bg-gray-100 text-gray-700'
                     placeholder='Write your message...'
                     value={currentMessage}
                     onChange={(e) => setCurrentMessage(e.target.value)}
