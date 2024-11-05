@@ -1,25 +1,45 @@
-import React from 'react'
+"use client"
+
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import UWingine from "../assets/images/UWingine_design.png"
 import Image from 'next/image'
 import Navbar from '@/components/navbar/LoginNavbar'
+import { useUserContext } from '@/context/context'
 
 function HomePage() {
+
+  const { user, setUser, isLoggedIn, setIsLoggedIn } = useUserContext();
+
+  const handleLogout = () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user_data');
+    setUser(null);
+    setIsLoggedIn(false);
+  };
+
   return (
     <div
       className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-50 text-gray-900"
       style={{ scrollbarWidth: "none" }}
     >
-      <Navbar />
+      <Navbar
+        isLoggedIn={isLoggedIn}
+        user={user}
+        handleLogout={handleLogout}
+      />
       {/* Hero Section */}
       <header className="flex flex-col items-center py-12 px-6">
         <h1 className="text-5xl font-bold font-mono text-blue-800">Welcome to UWingine</h1>
         <p className="mt-4 text-xl text-gray-700 text-center max-w-2xl">
           Streamline your access to university policies, academic calendars, and documentation with an LLM-powered chatbot that provides timely, accurate answers.
         </p>
-        <button className="mt-6 px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 font-semibold text-lg">
+        <Link
+          href={'/chat'}
+          className="mt-6 px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 font-semibold text-lg"
+        >
           Start Asking
-        </button>
+        </Link>
       </header>
 
       {/* Features Section */}
