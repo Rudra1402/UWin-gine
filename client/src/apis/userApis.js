@@ -36,7 +36,7 @@ export const handleSignup = async (e, formData, setFormData) => {
     }
 };
 
-export const handleLogin = async (e, loginData, setLoginData, router) => {
+export const handleLogin = async (e, loginData, setLoginData, router, setUser, setIsLoggedIn) => {
     e.preventDefault();
 
     try {
@@ -70,8 +70,8 @@ export const handleLogin = async (e, loginData, setLoginData, router) => {
             password: '',
         })
 
-        console.log(data)
-
+        setUser(data["user_data"])
+        setIsLoggedIn(true)
         localStorage.setItem("user", JSON.stringify(data))
         router.push("/")
 
