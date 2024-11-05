@@ -151,6 +151,36 @@ class Scraper:
                         folder = self.setup_directory("Prior Graduate Calendars", year)
                     self.download_pdf(url, folder)
 
+    def scrape_academic_dates(self):
+        """Scrapes the academic dates from a specific page and handles pagination."""
+        base_url = 'https://www.uwindsor.ca/registrar/events-listing'
+        self.driver.get(base_url)
+        academic_dates = []
+        
+        while True:
+            try:
+                # Wait for the table containing the dates to load
+                self.wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "table.views-table")))
+                rows = self.driver.find_elements(By.CSS_SELECTOR, "table.views-table tbody tr")
+                
+                for row in rows:
+                    date = row.find_element(By.CSS_SELECTOR, "td.views-field-field-event-date").text.strip()
+                    event = row.find_element(By.CSS_SELECTOR, "td.views-field-title a").text.strip()
+                    academic_dates.append({'date': date, 'event': event})
+                
+                # Navigate to the next page if available
+                next_page = self.driver.find_elements(By.CSS_SELECTOR, "ul.pagination li.next a")
+                if next_page:
+                    next_page_link = next_page[0].get_attribute('href')
+                    self.driver.get(next_page_link)
+                else:
+                    break
+            except Exception as e:
+                print("Failed to scrape academic dates:", str(e))
+                break
+
+        return academic_dates
+
     def get_senate_policies(self, text):
         """Scrapes senate policies from the website."""
         self.driver.get("https://www.uwindsor.ca/registrar/")
@@ -187,6 +217,10 @@ def main():
         # Scrape senate policies
         scraper.get_senate_policies("Senate Policies")
         scraper.get_senate_policies("Senate Bylaws")
+
+        # Scrape academic dates
+        academic_dates = scraper.scrape_academic_dates()
+        print("Academic Dates Scraped:", academic_dates)
 
         print("All scraping tasks completed!")
         print(scraper.pdfs)
