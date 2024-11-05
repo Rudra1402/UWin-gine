@@ -1,7 +1,7 @@
 import React from 'react'
 
 function ChatList() {
-    const chats = ['Chat 1', 'Chat 2', 'Chat 3'];
+    const chats = ['Chat'];
 
     return (
         <div className='w-1/5 bg-gray-50 p-4 flex flex-col gap-3 shadow-inner'>
