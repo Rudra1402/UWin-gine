@@ -1,10 +1,16 @@
 "use client"
 
-import React, { useContext, useEffect, useState } from 'react'
+import React from 'react'
 import Link from 'next/link'
-import { useUserContext } from '../../context/context'
 
-function Navbar({isLoggedIn, user, handleLogout}: {isLoggedIn: boolean, user: any, handleLogout: () => void}) {
+interface User {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  id?: string
+}
+
+function Navbar({isLoggedIn, user, handleLogout}: {isLoggedIn: boolean, user: User, handleLogout: () => void}) {
   return (
     <nav className="bg-white shadow-lg">
       <div className="max-w-7xl mx-auto px-6">

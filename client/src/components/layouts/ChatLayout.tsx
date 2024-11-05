@@ -9,7 +9,7 @@ interface ChatLayoutProps {
 
 function ChatLayout({ children }: ChatLayoutProps) {
 
-    const { user, isLoggedIn } = useUserContext();
+    const { isLoggedIn } = useUserContext();
 
     return (
         <div className='flex h-screen bg-gray-100'>
@@ -17,7 +17,6 @@ function ChatLayout({ children }: ChatLayoutProps) {
             <div className='flex-1 h-full flex flex-col bg-white shadow-lg overflow-hidden'>
                 <Navbar
                     isLoggedIn={isLoggedIn}
-                    user={user}
                 />
                 <div className='flex-1 p-0 overflow-y-auto'>
                     {children}
