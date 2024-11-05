@@ -76,7 +76,13 @@ async def login(login_data: LoginModel = Body(...), response: Response = None):
                 "stat": "success",
                 "message": "Login successful",
                 "statusCode": 200,
-                "access_token": access_token
+                "access_token": access_token,
+                "user_data": {
+                    "id": str(user["_id"]),
+                    "email": user["email"],
+                    "first_name": user["first_name"],
+                    "last_name": user["last_name"]
+                }
             }
         return {
             "stat": "error",

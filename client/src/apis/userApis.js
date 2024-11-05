@@ -69,8 +69,12 @@ export const handleLogin = async (e, loginData, setLoginData, router) => {
             email: '',
             password: '',
         })
+
+        console.log(data)
+
         localStorage.setItem("user", JSON.stringify(data))
         router.push("/")
+
         toast.success('Login success!', {
             autoClose: 2000
         });
