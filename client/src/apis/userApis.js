@@ -4,7 +4,7 @@ export const handleSignup = async (e, formData, setFormData) => {
     e.preventDefault();
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/user/signup/', {
+        const response = await fetch('http://54.147.167.63:8000/user/signup/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -40,7 +40,7 @@ export const handleLogin = async (e, loginData, setLoginData, router, setUser, s
     e.preventDefault();
 
     try {
-        const response = await fetch('http://localhost:8000/user/login/', {
+        const response = await fetch('http://54.147.167.63:8000/user/login/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
