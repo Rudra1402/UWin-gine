@@ -1,7 +1,6 @@
 import React, { ReactNode } from 'react'
-import Navbar from '../navbar/Navbar';
+import Navbar from '../navbar/LoginNavbar';
 import ChatList from '../chatlist/ChatList';
-import { useUserContext } from '@/context/context';
 
 interface ChatLayoutProps {
     children: ReactNode;
@@ -9,14 +8,11 @@ interface ChatLayoutProps {
 
 function ChatLayout({ children }: ChatLayoutProps) {
 
-    const { isLoggedIn } = useUserContext();
-
     return (
         <div className='flex h-screen bg-gray-100'>
             <ChatList />
             <div className='flex-1 h-full flex flex-col bg-white shadow-lg overflow-hidden'>
                 <Navbar
-                    isLoggedIn={isLoggedIn}
                 />
                 <div className='flex-1 p-0 overflow-y-auto'>
                     {children}

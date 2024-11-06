@@ -1,26 +1,43 @@
-"use client"
+"use client";
 
-import React from 'react'
-import Link from 'next/link'
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useUserContext } from '@/context/context';
+import { handleLogout } from '@/apis/userApis';
+import { useRouter } from 'next/navigation';
 
-interface User {
-  first_name?: string;
-  last_name?: string;
-  email?: string;
-  id?: string
-}
+function Navbar() {
+  const router = useRouter();
+  const { user, setUser, isLoggedIn, setIsLoggedIn} = useUserContext();
+  const [loading, setLoading] = useState(true);
 
-function Navbar({isLoggedIn, user, handleLogout}: {isLoggedIn: boolean, user: User, handleLogout: () => void}) {
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      if (parsedUser && parsedUser["user_data"]) {
+      setUser(parsedUser["user_data"]);
+      setIsLoggedIn(true);
+      }
+    }
+    setLoading(false);
+  }, [setUser, setIsLoggedIn]);
+
+  const handleLogoutClick = () => {
+    handleLogout(router, setUser, setIsLoggedIn)
+  };
+
+  if (loading) {
+    return null; // Optionally show a loading spinner
+  }
+
   return (
     <nav className="bg-white shadow-lg">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between items-center py-4">
-          {/* Logo */}
           <Link href="/" className="text-2xl font-bold text-blue-800">
             UWingine
           </Link>
-
-          {/* Login & Signup Buttons */}
           <div className="hidden md:flex space-x-4">
             {isLoggedIn ? (
               <>
@@ -28,7 +45,7 @@ function Navbar({isLoggedIn, user, handleLogout}: {isLoggedIn: boolean, user: Us
                   {user?.first_name || 'Profile'}
                 </Link>
                 <button
-                  onClick={handleLogout}
+                  onClick={handleLogoutClick}
                   className="px-4 py-2 border border-red-600 text-red-600 rounded hover:bg-red-600 hover:text-white transition duration-200"
                 >
                   Logout
@@ -51,8 +68,6 @@ function Navbar({isLoggedIn, user, handleLogout}: {isLoggedIn: boolean, user: Us
               </>
             )}
           </div>
-
-          {/* Mobile Menu Button */}
           <div className="md:hidden">
             <button
               type="button"
@@ -77,7 +92,7 @@ function Navbar({isLoggedIn, user, handleLogout}: {isLoggedIn: boolean, user: Us
         </div>
       </div>
     </nav>
-  )
+  );
 }
 
-export default Navbar
+export default Navbar;
