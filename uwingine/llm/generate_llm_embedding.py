@@ -127,14 +127,14 @@ async def main():
 
     print(model_obj._semantic_chunks[:2])
 
-    # vector_store = PGVector(
-    #     embeddings=model_obj._embeddings,
-    #     collection_name=collection_name,
-    #     connection=connection,
-    #     use_jsonb=True,
-    # )
-    # vector_store.add_documents(model_obj._semantic_chunks)
-    # print("Vector store created: ", vector_store)
+    vector_store = PGVector(
+        embeddings=model_obj._embeddings,
+        collection_name=collection_name,
+        connection=connection,
+        use_jsonb=True,
+    )
+    vector_store.add_documents(model_obj._semantic_chunks)
+    print("Vector store created: ", vector_store)
 
 if __name__ == "__main__":
     asyncio.run(main())
