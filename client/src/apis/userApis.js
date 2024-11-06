@@ -82,3 +82,22 @@ export const handleLogin = async (e, loginData, setLoginData, router, setUser, s
         console.error('Error logging in:', error);
     }
 };
+
+export const handleLogout = async (router, setUser, setIsLoggedIn) => {
+    try {
+        localStorage.removeItem("user");
+        setUser(null);
+        setIsLoggedIn(false);
+
+        router.push("/login");
+
+        toast.success('Logout successful!', {
+            autoClose: 2000
+        });
+    } catch (error) {
+        console.error('Error logging out:', error);
+        toast.error('Error logging out!', {
+            autoClose: 2000
+        });
+    }
+};

@@ -9,24 +9,12 @@ import { useUserContext } from '@/context/context'
 
 function HomePage() {
 
-  const { user, setUser, isLoggedIn, setIsLoggedIn } = useUserContext();
-
-  const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('user');
-    setUser(null);
-    setIsLoggedIn(false);
-  };
-
   return (
     <div
       className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-50 text-gray-900"
       style={{ scrollbarWidth: "none" }}
     >
       <Navbar
-        isLoggedIn={isLoggedIn}
-        user={user}
-        handleLogout={handleLogout}
       />
       {/* Hero Section */}
       <header className="flex flex-col items-center py-12 px-6">
