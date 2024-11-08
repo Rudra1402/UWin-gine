@@ -63,13 +63,26 @@ UWin-gine aims to improve access to academic resources by providing a chatbot in
 - Python 3.12.0 or higher
 - Docker
 - Node.js 18.18.0 or higher
-- AWS CLI configured with necessary permissions
+- AWS account with necessary permissions
 
 ### Steps
 1. **Clone the Repository**
    ```bash
    git clone https://github.com/Rudra1402/UWingine.git
-   cd UWingine
+
+2. **Go to the Server Directory**
+   ```bash
+   cd UWingine/server
+
+3. **Setup and Activate Virtual Environment (Windows)**
+   ```bash
+   python -m venv venv
+   venv/Scripts/activate
+
+4. **Build the Docker Image and Run the Container**
+   ```bash
+   docker build -t uwingine-image .
+   docker run -p 8000:8000 --name uwingine-container uwingine-image
 
 # Usage
 ## Accessing the Chat Interface
