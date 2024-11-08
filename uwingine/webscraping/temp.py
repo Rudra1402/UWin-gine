@@ -231,14 +231,16 @@ def main():
 
     try:
         # Scrape academic calendars
-        scraper.get_academic_calendars()
+        # scraper.get_academic_calendars()
 
         # Scrape senate policies
         scraper.get_senate_policies("Senate Policies")
         scraper.get_senate_policies("Senate Bylaws")
 
         # Scrape academic dates
-        scraper.scrape_academic_dates()
+        # academic_dates = scraper.scrape_academic_dates()
+        # print("Academic Dates Scraped:", academic_dates)
+
         print("All scraping tasks completed!")
         
     finally:
