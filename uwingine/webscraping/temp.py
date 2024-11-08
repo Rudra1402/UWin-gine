@@ -4,6 +4,8 @@ import requests
 import re
 import threading
 import concurrent.futures
+import json
+from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -166,7 +168,8 @@ class Scraper:
                 for row in rows:
                     date = row.find_element(By.CSS_SELECTOR, "td.views-field-field-event-date").text.strip()
                     event = row.find_element(By.CSS_SELECTOR, "td.views-field-title a").text.strip()
-                    academic_dates.append({'date': date, 'event': event})
+                    event_link = row.find_element(By.CSS_SELECTOR, "td.views-field-title a").get_attribute("href")
+                    academic_dates.append({'date': date, 'event': event, 'event link': event_link })
                 
                 # Navigate to the next page if available
                 next_page = self.driver.find_elements(By.CSS_SELECTOR, "ul.pagination li.next a")
@@ -179,7 +182,22 @@ class Scraper:
                 print("Failed to scrape academic dates:", str(e))
                 break
 
+        folder_path = self.setup_directory("Important Academic Dates")
+        self.save_to_json(academic_dates, folder_path, "Important_academic_dates")
+           
         return academic_dates
+    
+    def save_to_json(self, data, folder, filename):
+        #Saves data to a JSON file in the specified folder.
+
+            # Get current date in YYYY-MM-DD format
+            current_date = datetime.now().strftime("%y%m%d")
+            # Append the date to the filename
+            dated_filename = f"{filename}_{current_date}.json"
+        
+            file_path = os.path.join(folder, dated_filename)
+            with open(file_path, 'w', encoding='utf-8') as json_file:
+                json.dump(data, json_file, ensure_ascii=False, indent=4)
 
     def get_senate_policies(self, text):
         """Scrapes senate policies from the website."""
@@ -219,11 +237,8 @@ def main():
         scraper.get_senate_policies("Senate Bylaws")
 
         # Scrape academic dates
-        academic_dates = scraper.scrape_academic_dates()
-        print("Academic Dates Scraped:", academic_dates)
-
+        scraper.scrape_academic_dates()
         print("All scraping tasks completed!")
-        print(scraper.pdfs)
         
     finally:
         scraper.close()
