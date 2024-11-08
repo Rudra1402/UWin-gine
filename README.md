@@ -60,8 +60,9 @@ UWin-gine aims to improve access to academic resources by providing a chatbot in
 ## Installation
 
 ### Prerequisites
-- Python 3.8 or higher
+- Python 3.12.0 or higher
 - Docker
+- Node.js 18.18.0 or higher
 - AWS CLI configured with necessary permissions
 
 ### Steps
