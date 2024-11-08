@@ -78,13 +78,13 @@ class Scraper:
         else:
             print(f"Failed to download {url}. Status code: {response.status_code}")
 
-    def download_dynamic_pdf(self, url, folder, filename):
+    def download_dynamic_pdf(self, url, folder, filename, link_text):
         """Downloads a dynamically generated PDF and saves it with a specified filename."""
         file_path = os.path.join(folder, filename)
 
-        if os.path.exists(file_path):
-            print(f"{filename} already exists in {folder}, skipping download.")
-            return file_path
+        # if os.path.exists(file_path):
+        #     print(f"{filename} already exists in {folder}, skipping download.")
+        #     return file_path
 
         response = requests.get(url, stream=True)
         if response.status_code == 200:
@@ -92,7 +92,9 @@ class Scraper:
                 for chunk in response.iter_content(chunk_size=8192):
                     f.write(chunk)
             print(f"Downloaded {file_path}")
-            return file_path
+            new_file_path = file_path.replace(filename, f"{link_text}.pdf")
+            os.rename(file_path, new_file_path)
+            return new_file_path
         else:
             print(f"Failed to download from {url}. Status code: {response.status_code}")
             return None
@@ -126,32 +128,25 @@ class Scraper:
                         d["live_link"] = link
                         folder = self.setup_directory(text)
 
-                        # rID_match = re.search(r'rID=([^&]+)', link)
-                        # if rID_match:
-                            # filename = f"Policy_{rID_match.group(1)}.pdf"
-                            # key = subsubdiv.find_element(
-                            #     By.CLASS_NAME, "control-display-label")
-                            # filename = f"Policy_{key.text}.pdf"
-                            # local_path = self.download_dynamic_pdf(
-                            #     link, folder, filename)
-                            # if local_path:
-                            #     d["local_path"] = local_path
-                                # s3_url = self.s3_manager.upload_file(local_path)
-                                # d["s3_url"] = s3_url
+                        rID_match = re.search(r'rID=([^&]+)', link)
+                        if rID_match:
+                            filename = f"Policy_{rID_match.group(1)}.pdf"
+                            key = subsubdiv.find_element(
+                                By.CLASS_NAME, "control-display-label")
+                            filename = f"Policy_{key.text}.pdf"
+                            local_path = self.download_dynamic_pdf(
+                                link, folder, filename, link_text)
+                            if local_path:
+                                d["local_path"] = local_path
+                                s3_url = self.s3_manager.upload_file(local_path)
+                                d["s3_url"] = s3_url
                     else:
                         key = subsubdiv.find_element(
                             By.CLASS_NAME, "control-display-label")
                         value = subsubdiv.find_element(
                             By.CLASS_NAME, "field-item-content-span")
                         d[self.convert_text_to_key(key.text)] = value.text
-                
-                #download pdf
-                filename = f"{link_text}.pdf"
-                local_path = self.download_dynamic_pdf(link_href, folder, filename)
-                if local_path:
-                    d["local_path"] = local_path
-                    s3_url = self.s3_manager.upload_file(local_path)
-                    d["s3_url"] = s3_url
+                               
                 d['type'] = self.convert_text_to_key(text)
                 d['created_at'] = int(time.time() * 1000)
                 print(f"Item {link_text}:\n {d}")
