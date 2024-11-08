@@ -13,3 +13,7 @@ langgraph
 psycopg[binary,pool]
 tiktoken
 langchain-postgres
+langgraph-checkpoint-postgres
+llama-index-core
+llama-parse
+llama-index-readers-file

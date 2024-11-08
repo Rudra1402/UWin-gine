@@ -107,6 +107,18 @@ class DynamoDBToS3Downloader:
             print(f"Downloaded file {file_url} from {local_file_path}")
 
         return {item['title']: {key: value for key, value in item.items() if key != 'title'} for item in response}
+    
+    def scan(self):
+        response = self.dynamodb_manager.scan_items()
+        for item in response:
+            file_url = item.get('local_path')
+            title = item.get('title')
+            local_file_path = os.path.join(
+                self.download_directory, os.path.basename(f'{title}.pdf'))
+            # self.s3_manager.download_file(file_url, local_file_path)
+            # print(f"Downloaded file {file_url} from {local_file_path}")
+
+        return {item['title']: {key: value for key, value in item.items() if key != 'title'} for item in response}
 
 
 # Example usage S3Manager
