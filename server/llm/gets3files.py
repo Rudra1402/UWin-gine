@@ -20,8 +20,9 @@ boto3.setup_default_session(
 )
 
 downloader = DynamoDBToS3Downloader(dynamodb_table_name, s3_bucket_name, 'downloads')
-print(downloader)
-items = downloader.scan_and_download()
+# print(downloader)
+items = downloader.scan()
+print(items.keys())
 
 # dynamodb = boto3.resource('dynamodb', region_name=os.environ['AWS_DEFAULT_REGION'])
 # table_name = 'Uwingine-Metadata'

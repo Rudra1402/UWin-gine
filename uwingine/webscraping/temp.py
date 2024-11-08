@@ -13,7 +13,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 
 class Scraper:
-    def __init__(self, base_download_dir="E:/Projects/Scraping"):
+    def __init__(self, base_download_dir="doc"):
         self.base_download_dir = base_download_dir
         self.lock = threading.Lock()
         self.driver = self._setup_browser()
@@ -53,7 +53,7 @@ class Scraper:
         else:
             print(f"Failed to download {url}. Status code: {response.status_code}")
 
-    def download_dynamic_pdf(self, url, folder, filename):
+    def download_dynamic_pdf(self, url, folder, filename, link_text):
         """Downloads a dynamically generated PDF and saves it with a specified filename."""
         file_path = os.path.join(folder, filename)
 
@@ -67,6 +67,7 @@ class Scraper:
                 for chunk in response.iter_content(chunk_size=8192):
                     f.write(chunk)
             print(f"Downloaded {filename} to {folder}")
+            os.rename(file_path, file_path.replace(filename, f"{link_text}.pdf"))
             return file_path
         else:
             print(f"Failed to download from {url}. Status code: {response.status_code}")
@@ -101,7 +102,7 @@ class Scraper:
                         rID_match = re.search(r'rID=([^&]+)', link)
                         if rID_match:
                             filename = f"Policy_{rID_match.group(1)}.pdf"
-                            local_path = self.download_dynamic_pdf(link, folder, filename)
+                            local_path = self.download_dynamic_pdf(link, folder, filename, link_text)
                             if local_path:
                                 d["Local Path"] = local_path
                     else:
