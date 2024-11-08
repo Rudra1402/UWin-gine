@@ -70,24 +70,28 @@ UWin-gine aims to improve access to academic resources by providing a chatbot in
    git clone https://github.com/Rudra1402/UWingine.git
    cd UWingine
 
-Usage
-Accessing the Chat Interface
-
+# Usage
+## Accessing the Chat Interface
 Visit the homepage at http://localhost:3000 to interact with UWingine.
-Querying Information
 
+## Querying Information
 Enter questions related to academic policies, course selection, or other information. The chatbot will fetch and display the most relevant answers.
-User Registration and Authentication
 
-Users can sign up and log in to save chat history, access advanced features, and personalize their experience.
-Feedback Submission
+## User Registration and Authentication
+Users can sign up and log in to:
+- save chat history
+- access advanced features
+- personalize their experience.
 
+## Feedback Submission
 Users can provide feedback on responses to help improve accuracy and relevance.
-Contributing
-Contributions are welcome! To contribute:
 
-Fork the repository.
-Create a new branch (git checkout -b feature-branch).
-Make your changes.
-Submit a pull request.
+# Contributing
+## Contributions are welcome! To contribute:
+
+- Fork the repository.
+- Create a new branch (git checkout -b feature-branch).
+- Make your changes.
+- Submit a pull request.
+
 Ensure your code follows best practices and includes relevant documentation.
