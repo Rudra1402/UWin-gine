@@ -42,3 +42,11 @@ mkdir -p "/opt/chrome-driver"
 curl -Lo $download_path_chrome_driver_linux $latest_chrome_driver_linux_download_url
 unzip -q $download_path_chrome_driver_linux -d "/opt/chrome-driver"
 rm -rf $download_path_chrome_driver_linux
+
+
+# su - postgres
+# \c langchain;
+# DELETE FROM langchain_pg_collection;
+# DELETE FROM langchain_pg_embedding;
+
+# su - postgres -c "psql -d langchain -c 'DELETE FROM langchain_pg_collection;' -c 'DELETE FROM langchain_pg_embedding;'"

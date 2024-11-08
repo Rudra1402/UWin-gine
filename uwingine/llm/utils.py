@@ -122,21 +122,21 @@ class DynamoDBToS3Downloader:
 # dynamodb_manager.delete_item({'title': 'Test Doc'})
 
 # try:
-#     # # Example usage S3Manager
-#     # s3_manager = S3Manager(s3_bucket_name)
-#     # s3_manager.upload_file('file.txt')
-#     # s3_manager.download_file('file.txt', 'downloaded_file.txt')
+    # # Example usage S3Manager
+    # s3_manager = S3Manager(s3_bucket_name)
+    # s3_manager.upload_file('file.txt')
+    # s3_manager.download_file('file.txt', 'downloaded_file.txt')
 
-#     # # Example usage DynamoDBManager
-#     # dynamodb_manager = DynamoDBManager(dynamodb_table_name)
-#     # dynamodb_manager.create_item({'title': 'Test Doc'})
-#     # dynamodb_manager.read_item({'title': 'Test Doc'})
-#     # dynamodb_manager.update_item({'title': 'Test Doc'}, 'SET created_by = :created_by', {':created_by': 'Bob'})
-#     # dynamodb_manager.delete_item({'title': 'Test Doc'})
-#     # Example usage DynamoDBToS3Downloader
-#     downloader = DynamoDBToS3Downloader(dynamodb_table_name, s3_bucket_name, 'downloads')
-#     items = downloader.scan_and_download()
+    # # Example usage DynamoDBManager
+    # dynamodb_manager = DynamoDBManager(dynamodb_table_name)
+    # dynamodb_manager.create_item({'title': 'Test Doc'})
+    # dynamodb_manager.read_item({'title': 'Test Doc'})
+    # dynamodb_manager.update_item({'title': 'Test Doc'}, 'SET created_by = :created_by', {':created_by': 'Bob'})
+    # dynamodb_manager.delete_item({'title': 'Test Doc'})
+    # Example usage DynamoDBToS3Downloader
+    # downloader = DynamoDBToS3Downloader(dynamodb_table_name, s3_bucket_name, 'downloads')
+    # items = downloader.scan_and_download()
 
-#     print(f"Items downloaded: {items}")
+    # print(f"Items downloaded: {items}")
 # except Exception as e:
-#     print(f"Error: {e}")
+    # print(f"Error: {e}")
