@@ -69,10 +69,11 @@ UWin-gine aims to improve access to academic resources by providing a chatbot in
 1. **Clone the Repository**
    ```bash
    git clone https://github.com/Rudra1402/UWingine.git
+   cd UWingine
 
 2. **Go to the Server Directory**
    ```bash
-   cd UWingine/server
+   cd server
 
 3. **Setup and Activate Virtual Environment (Windows)**
    ```bash
@@ -83,6 +84,15 @@ UWin-gine aims to improve access to academic resources by providing a chatbot in
    ```bash
    docker build -t uwingine-image .
    docker run -p 8000:8000 --name uwingine-container uwingine-image
+
+5. **Go to the Client Directory**
+   ```bash
+   cd client
+
+6. **Install the Dependencies and Run the Server**
+   ```bash
+   npm install -f
+   npm run dev
 
 # Usage
 ## Accessing the Chat Interface
