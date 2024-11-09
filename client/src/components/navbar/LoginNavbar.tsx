@@ -8,65 +8,63 @@ import { useRouter } from 'next/navigation';
 
 function Navbar() {
   const router = useRouter();
-  const { user, setUser, isLoggedIn, setIsLoggedIn} = useUserContext();
-  const [loading, setLoading] = useState(true);
+  const { user, setUser, isLoggedIn, setIsLoggedIn } = useUserContext();
+  const [authChecked, setAuthChecked] = useState(false); // Flag to check auth status
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       if (parsedUser && parsedUser["user_data"]) {
-      setUser(parsedUser["user_data"]);
-      setIsLoggedIn(true);
+        setUser(parsedUser["user_data"]);
+        setIsLoggedIn(true);
       }
     }
-    setLoading(false);
+    setAuthChecked(true); // Set flag to true after checking
   }, [setUser, setIsLoggedIn]);
 
   const handleLogoutClick = () => {
-    handleLogout(router, setUser, setIsLoggedIn)
+    handleLogout(router, setUser, setIsLoggedIn);
   };
 
-  if (loading) {
-    return null; // Optionally show a loading spinner
-  }
-
   return (
-    <nav className="bg-white shadow-lg">
+    <nav className="bg-white shadow-md">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between items-center py-4">
           <Link href="/" className="text-2xl font-bold text-blue-800">
             UWingine
           </Link>
           <div className="hidden md:flex space-x-4">
-            {isLoggedIn ? (
-              <>
-                <Link href="/profile" className="px-4 py-2 text-blue-600">
-                  {user?.first_name || 'Profile'}
-                </Link>
-                <button
-                  onClick={handleLogoutClick}
-                  className="px-4 py-2 border border-red-600 text-red-600 rounded hover:bg-red-600 hover:text-white transition duration-200"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="px-4 py-2 border border-blue-600 text-blue-600 rounded hover:bg-blue-600 hover:text-white transition duration-200"
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/signup"
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-200"
-                >
-                  Sign Up
-                </Link>
-              </>
-            )}
+            {authChecked ? (
+              isLoggedIn ? (
+                <>
+                  <Link href="/profile" className="px-2 py-2 text-blue-600">
+                    {user?.first_name || 'Profile'}
+                  </Link>
+                  <button
+                    onClick={handleLogoutClick}
+                    className="px-4 py-2 border border-red-600 text-red-600 rounded hover:bg-red-600 hover:text-white transition duration-200"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="px-4 py-2 border border-blue-600 text-blue-600 rounded hover:bg-blue-600 hover:text-white transition duration-200"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/signup"
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-200"
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              )
+            ) : null}
           </div>
           <div className="md:hidden">
             <button

@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useState, useContext, useLayoutEffect } from 'react';
 
 const UserContext = createContext();
 
@@ -8,7 +8,7 @@ export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const token = localStorage.getItem('access_token');
     const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
 
