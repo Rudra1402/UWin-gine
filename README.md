@@ -1,6 +1,6 @@
 # UWingine
 
-UWingine is an AI-powered chatbot platform designed to simplify and enhance the academic experience for students. This solution automates the retrieval of academic information, such as policies, course details, and procedures, providing quick and accurate responses with references to original documents. UWin-gine leverages web scraping, cloud-based storage, and a large language model (LLM) to deliver relevant information efficiently.
+UWingine is an AI-powered chatbot platform designed to simplify and enhance the academic experience for students. This solution automates the retrieval of academic information, such as policies, course details, and procedures, providing quick and accurate responses with references to original documents. UWingine leverages web scraping, cloud-based storage, and a large language model (LLM) to deliver relevant information efficiently.
 
 ---
 
@@ -18,7 +18,7 @@ UWingine is an AI-powered chatbot platform designed to simplify and enhance the 
 
 ## Project Overview
 
-UWin-gine aims to improve access to academic resources by providing a chatbot interface for students. The chatbot reduces time spent searching through extensive documents by offering direct, contextually relevant responses. Using a combination of cloud infrastructure, machine learning, and real-time processing, UWin-gine is a scalable, accessible, and reliable solution for addressing student queries.
+UWingine aims to improve access to academic resources by providing a chatbot interface for students. The chatbot reduces time spent searching through extensive documents by offering direct, contextually relevant responses. Using a combination of cloud infrastructure, machine learning, and real-time processing, UWingine is a scalable, accessible, and reliable solution for addressing student queries.
 
 ## Features
 
@@ -47,7 +47,7 @@ UWin-gine aims to improve access to academic resources by providing a chatbot in
   
 ### 5. Frontend Development
 - **Next.js and Tailwind CSS**: Delivers a responsive, mobile-friendly interface, enhancing accessibility across devices.
-- **Interactive Chat Interface**: Allows users to interact with UWin-gine, providing an engaging and informative experience.
+- **Interactive Chat Interface**: Allows users to interact with UWingine, providing an engaging and informative experience.
 
 ## Technologies Used
 
