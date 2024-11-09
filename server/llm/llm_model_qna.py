@@ -20,9 +20,11 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.messages import BaseMessage
 from langgraph.checkpoint.memory import MemorySaver
-from langgraph.graph import START, MessagesState, StateGraph
+from langgraph.checkpoint.postgres import PostgresSaver
+from langgraph.graph import START, END, MessagesState, StateGraph
 from langgraph.graph.message import add_messages
 from typing_extensions import Annotated, TypedDict
+from psycopg_pool import ConnectionPool
 from typing import Sequence
 import warnings
 warnings.filterwarnings("ignore")
@@ -43,9 +45,14 @@ class ChatModelQnA():
         self._workflow.add_edge(START, "model")
         self._workflow.add_node("model", self._call_model)
 
-        memory = MemorySaver()
+        self._connection_kwargs = {
+            "autocommit": True,
+            "prepare_threshold": 0,
+        }
+            
+        # memory = MemorySaver()
         # In the invocation process, _app can now handle config for personalized queries
-        self._app = self._workflow.compile(checkpointer=memory)
+        # self._app = self._workflow.compile(checkpointer=memory)
         
     def _call_model(self, state: State, config: dict = None):
         # Use thread_id from config if provided
@@ -62,15 +69,27 @@ class ChatModelQnA():
             "thread_id": thread_id  # Including thread_id in response if required
         }
     
-    def _ask_query(self, input_text: str, config: dict = None):
+    def _ask_query(self, chatMemoryConnectingString: str, input_text: str, config: dict = None):
         state = {
             "input": input_text,
             "chat_history": [],
             "context": "",
             "answer": ""
         }
+
         # Invoke _app with state and config for user-specific query handling
-        return self._app.invoke(state, config=config)
+        with ConnectionPool(
+            conninfo = chatMemoryConnectingString,
+            max_size = 20,
+            min_size = 1,
+            timeout = 5000,
+            kwargs=self._connection_kwargs
+        ) as pool:
+            cp = PostgresSaver(pool)
+            # cp.setup()
+            print('Connected to user chat..')
+            self._app = self._workflow.compile(checkpointer=cp)
+            return self._app.invoke(state, config=config)
 
     def _initialize_api(
             self, 
@@ -131,7 +150,7 @@ class ChatModelQnA():
             "You are an assistant for helping students for questions regarding academic policies or bylaws. You have been provided information from official sources."
             "Use ONLY the following pieces of retrieved context to answer. the question. If the answer can be quoted from the PDFs then do that."
             "If the question is not related to academic policies/bylaws then simply reply \"Sorry I cannot answer that question as of now\". If the question is relevant to academic policies/bylaws and you do not know the answer" 
-            "then say that you DO NOT know. Please Keep the answer moderately concise."
+            "then say that you do not know. Feel free to engage in casual human conversation. Be kind. Please Keep the answer moderately concise."
             "\n\n"
             "{context}"
         )
@@ -161,10 +180,11 @@ def main(thread_id: str, question: str) -> dict:
     model_obj._initialize_api("GROQ_API_KEY", "HF_TOKEN")
     model_obj._initialize_model(model_name=model_name, temperature=temperature, embedding_model_name=embedding_model_name)
 
-    print('Connecting to EC2 Postgres DB..')
-    # connection = "postgresql+psycopg://langchain:langchain@localhost:6024/langchain"  # Uses psycopg3!
+    print('Connecting to EC2 Postgres DB and Chat Memory..')
+
     connection="postgresql+psycopg://langchain:langchain321@54.147.167.63:5432/langchain"
-    collection_name = "my_docs"
+    chatConnectionString="postgres://langchain:langchain321@54.147.167.63:5432/langchain"
+    collection_name = "initial_docs"
 
     vector_store = PGVector(
         embeddings=model_obj._embeddings,
@@ -183,14 +203,37 @@ def main(thread_id: str, question: str) -> dict:
     config = {"configurable": {"thread_id": thread_id}}
     result = model_obj._ask_query(
         input_text=question,
-        config=config
+        config=config,
+        chatMemoryConnectingString=chatConnectionString
     )
 
     print('Response received..')
     response = dict()
     response['answer'] = result['answer']
     response['user_id'] = thread_id
-    print("Response: \n", response)
+
+    # Dictionary to store pdf names as keys and lists of page numbers as values
+    pdf_pages = {}
+    pdf_links = {}
+
+    # Iterate over each document
+    for doc in result['context']:
+        pdf_name = doc.metadata['pdf_name']
+        page_number = doc.metadata['page_number']
+        pdf_link = doc.metadata['pdf_link']
+        
+        # Add page numbers to the list for each pdf_name
+        if pdf_name not in pdf_pages:
+            pdf_pages[pdf_name] = []
+            pdf_links[pdf_name] = pdf_link
+        pdf_pages[pdf_name].append(page_number)
+    
+    response['source_pdf_pages'] =  pdf_pages
+    response['source_pdf_links'] =  pdf_links
+    # print("Response: \n", response)
+    print(response['answer'])
+    print(response['source_pdf_pages'])
+    print(response['source_pdf_links'])
     return response
 
 if __name__ == "__main__":
