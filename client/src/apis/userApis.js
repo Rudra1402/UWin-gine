@@ -1,3 +1,4 @@
+import api from "@/axios/axios";
 import { toast } from "react-toastify";
 
 export const handleSignup = async (e, formData, setFormData) => {
@@ -101,3 +102,13 @@ export const handleLogout = async (router, setUser, setIsLoggedIn) => {
         });
     }
 };
+
+export const getUserByID = async(id, setData, setError) => {
+    try {
+        const res = await api.get(`/user/users/${id}`)
+        console.log(res.data)
+        return res.data;
+    } catch (error) {
+        console.error('Error logging in:', error);
+    }
+}
