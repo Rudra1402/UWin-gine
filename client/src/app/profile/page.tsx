@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import Navbar from '@/components/navbar/LoginNavbar';
 import { getUserByID } from '@/apis/userApis';
@@ -10,41 +9,56 @@ interface UserData {
     last_name: string;
     email: string;
     id: string;
+    usertype: string;
 }
 
 const ProfilePage = () => {
-    // const router = useRouter();
     const [data, setData] = useState<UserData | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        const user = localStorage.getItem("user")
-        if(user) {
-            let jsonUser = JSON.parse(user);
-            jsonUser = jsonUser["user_data"]
-            getUserByID(jsonUser?.id, setData, setError);
+        const user = localStorage.getItem("user");
+        if (user) {
+            const jsonUser = JSON.parse(user)?.user_data;
+            getUserByID(jsonUser?.id, setData, setError, setLoading);
+        } else {
             setLoading(false);
+            setError("User not logged in!");
         }
-    }, [data]);
+    }, []);
 
     if (error) {
-        return <div className="text-center text-red-600">{error}</div>;
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-100">
+                <div className="text-center text-red-600 text-xl font-semibold">{error}</div>
+            </div>
+        );
     }
 
     if (loading || !data) {
-        return <div className="text-center">Loading user profile...</div>;
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-100">
+                <div className="text-center text-gray-600 text-xl font-semibold">Loading user profile...</div>
+            </div>
+        );
     }
 
     return (
         <div className="min-h-screen bg-gray-100">
             <Navbar />
-            <div className="max-w-3xl mx-auto py-12 px-6">
-                <div className="bg-white p-6 rounded-lg shadow-lg">
-                    <h2 className="text-3xl font-bold text-gray-800 mb-4">
+            <div className="max-w-3xl mx-auto p-6">
+                <div className="bg-white p-8 rounded-lg shadow-lg flex flex-col items-center text-center">
+                    <div className="w-24 h-24 rounded-full bg-blue-400 flex items-center justify-center text-3xl text-white font-semibold mb-4">
+                        {data.first_name[0]}{data.last_name[0]}
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-1">
                         {data.first_name} {data.last_name}
                     </h2>
-                    <p className="text-gray-600">{data.email}</p>
+                    <p className="text-gray-600 mb-2">{data.email}</p>
+                    <span className="px-4 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
+                        {data.usertype.split('-')[0].toUpperCase() + " " + data.usertype.split('-')[1].toUpperCase()}
+                    </span>
                 </div>
             </div>
         </div>

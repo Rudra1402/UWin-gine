@@ -103,12 +103,22 @@ export const handleLogout = async (router, setUser, setIsLoggedIn) => {
     }
 };
 
-export const getUserByID = async(id, setData, setError) => {
+export const getUserByID = async(id, setData, setError, setLoading) => {
     try {
         const res = await api.get(`/user/users/${id}`)
-        console.log(res.data)
-        return res.data;
+        const data = res.data["data"];
+        let userObj = {
+            first_name: data?.first_name,
+            last_name: data?.last_name,
+            email: data?.email,
+            id: data?.id,
+            usertype: data?.user_type,
+        }
+        setData(userObj)
     } catch (error) {
+        setError(error?.message)
         console.error('Error logging in:', error);
+    } finally {
+        setLoading(false)
     }
 }

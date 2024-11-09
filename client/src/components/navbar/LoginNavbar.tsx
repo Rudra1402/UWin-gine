@@ -41,9 +41,13 @@ function Navbar() {
                   <Link href="/profile" className="px-2 py-2 text-blue-600">
                     {user?.first_name || 'Profile'}
                   </Link>
+                  <Link 
+                  href="/chat" 
+                  className="px-3 py-1 border border-blue-600 text-blue-600 rounded hover:bg-blue-600 hover:text-white transition duration-200 flex items-center justify-center"
+                  >Chat</Link>
                   <button
                     onClick={handleLogoutClick}
-                    className="px-4 py-2 border border-red-600 text-red-600 rounded hover:bg-red-600 hover:text-white transition duration-200"
+                    className="px-3 py-1 border border-red-600 text-red-600 rounded hover:bg-red-600 hover:text-white transition duration-200"
                   >
                     Logout
                   </button>

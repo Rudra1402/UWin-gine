@@ -6,7 +6,7 @@ from fastapi import APIRouter, Body, HTTPException, status, Response
 from pydantic import EmailStr
 from bson import ObjectId
 from pymongo.errors import PyMongoError, DuplicateKeyError
-from models.user_model import UserModel, LoginModel, QueryRequestModel
+from models.user_model import UserModel, LoginModel, QueryRequestModel, UserResponseModel
 from core.security import hash_password, verify_password
 from database.connection import user_collection
 from typing import Union
@@ -98,7 +98,7 @@ async def login(login_data: LoginModel = Body(...), response: Response = None):
 @router.get(
     "/users/{id}",
     response_description="Get a single user",
-    response_model=UserModel,
+    response_model=UserResponseModel,
     response_model_by_alias=False,
 )
 async def show_user(id: str):
