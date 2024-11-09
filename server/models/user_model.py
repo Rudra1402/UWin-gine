@@ -22,6 +22,11 @@ class LoginModel(BaseModel):
     email: EmailStr = Field(...)
     password: str = Field(...)
 
+class UserResponseModel(BaseModel):
+    stat: str
+    statusCode: int
+    data: UserModel
+
 class ChatModel(BaseModel):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     user_id: PyObjectId = Field(..., description="Reference to the user who sent/received the message")
