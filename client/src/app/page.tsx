@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 // import UWingine from "../assets/images/uwingine_design.png"
-import Image from 'next/image'
+// import Image from 'next/image'
 import Navbar from '@/components/navbar/LoginNavbar'
 // import dataflow from "../../public/dataflow.svg"
 
