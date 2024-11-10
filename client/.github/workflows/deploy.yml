@@ -20,9 +20,11 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+        working-directory: ./client
 
       - name: Build Next.js app
         run: npm run build
+        working-directory: ./client
 
       - name: Upload to S3
         env:
@@ -31,4 +33,4 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
         run: |
-          aws s3 sync ./out s3://$AWS_BUCKET_NAME --delete
+          aws s3 sync ./client/out s3://$AWS_BUCKET_NAME --delete
