@@ -171,7 +171,8 @@ async def process_query(query_request: QueryRequestModel = Body(...), response: 
             raise ValueError("The main function returned an invalid response")
 
         result = {
-            "message": f"Query '{d['answer']}' has been processed for user!"
+            "message": f"Query '{d['answer']}' has been processed for user!",
+            "result": d
         }
         
         return result

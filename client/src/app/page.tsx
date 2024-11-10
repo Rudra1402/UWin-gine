@@ -2,9 +2,10 @@
 
 import React from 'react'
 import Link from 'next/link'
-import UWingine from "../assets/images/uwingine_design.png"
+// import UWingine from "../assets/images/uwingine_design.png"
 import Image from 'next/image'
 import Navbar from '@/components/navbar/LoginNavbar'
+// import dataflow from "../../public/dataflow.svg"
 
 function HomePage() {
 
@@ -48,7 +49,7 @@ function HomePage() {
       </section>
 
       {/* How it Works Section */}
-      <section className="py-16 px-6 bg-blue-50">
+      <section className="py-16 px-6 bg-blue-50 flex flex-col items-center">
         <h2 className="text-3xl font-semibold text-center">How UWingine Works</h2>
         <div className="mt-8 max-w-3xl mx-auto text-center text-gray-700">
           <p>
@@ -56,11 +57,11 @@ function HomePage() {
             Get accurate, up-to-date answers based on real policies and guidelines.
           </p>
         </div>
-        <div className="mt-8 flex justify-center">
-          <Image
-            src={UWingine}
+        <div className="mt-8 flex justify-center px-4 rounded-lg shadow-lg w-full max-w-3xl bg-white">
+          <img
+            src={"https://firebasestorage.googleapis.com/v0/b/live-urls.appspot.com/o/data%20flow.drawio.svg?alt=media&token=1be384be-f5d5-4509-8ed9-fb7723496c74"}
             alt="Flow Diagram of UWingine"
-            className="w-full max-w-xl rounded-lg shadow-lg"
+            className="w-full mx-auto"
           />
         </div>
       </section>
