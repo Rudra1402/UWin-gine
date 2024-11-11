@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 // import UWingine from "../assets/images/uwingine_design.png"
-// import Image from 'next/image'
+import Image from 'next/image'
 import Navbar from '@/components/navbar/LoginNavbar'
 // import dataflow from "../../public/dataflow.svg"
 
@@ -58,9 +58,11 @@ function HomePage() {
           </p>
         </div>
         <div className="mt-8 flex justify-center px-4 rounded-lg shadow-lg w-full max-w-3xl bg-white">
-          <img
+          <Image
             src={"https://firebasestorage.googleapis.com/v0/b/live-urls.appspot.com/o/data%20flow.drawio.svg?alt=media&token=1be384be-f5d5-4509-8ed9-fb7723496c74"}
             alt="Flow Diagram of UWingine"
+            width={768}
+            height={350}
             className="w-full mx-auto"
           />
         </div>
