@@ -1,14 +1,14 @@
 import sys
 import os
 from dotenv import load_dotenv
-from typing import Optional
+from typing import Optional, List
 from fastapi import APIRouter, Body, HTTPException, status, Response
 from pydantic import EmailStr
 from bson import ObjectId
 from pymongo.errors import PyMongoError, DuplicateKeyError
-from models.user_model import UserModel, LoginModel, QueryRequestModel, UserResponseModel
+from models.user_model import UserModel, LoginModel, QueryRequestModel, UserResponseModel, ChatModel, ChatRecord
 from core.security import hash_password, verify_password
-from database.connection import user_collection
+from database.connection import user_collection, chat_collection
 from typing import Union
 from datetime import datetime, timedelta, timezone
 import jwt
@@ -155,20 +155,23 @@ async def delete_user(id: str):
 )
 async def process_query(query_request: QueryRequestModel = Body(...), response: Response = None):
     try:
-        # Validate user_id
         user = await user_collection.find_one({"_id": ObjectId(query_request.thread_id)})
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"User with ID {query_request.thread_id} not found."
-            )
-        
-        print("Calling LLM!")
-        # Process the query (logic can be extended as needed)
+        print(user)
+        print("Calling LLM from server!")
         d = main(thread_id=query_request.thread_id, question=query_request.question)
 
         if not d or 'answer' not in d or d['answer'] is None:
             raise ValueError("The main function returned an invalid response")
+
+        if user:
+            chat_data = ChatModel(
+                user_id=str(query_request.thread_id),
+                role=user["user_type"],
+                prompt=query_request.question,
+                answer=d['answer']
+            )
+
+            chat_collection.insert_one(chat_data.model_dump(by_alias=True, exclude=["id"]))
 
         result = {
             "message": f"Query '{d['answer']}' has been processed for user!",
@@ -180,4 +183,30 @@ async def process_query(query_request: QueryRequestModel = Body(...), response: 
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred while processing the query: {str(e)}"
+        )
+
+@router.get("/chat/history/{thread_id}", description="Retrieve chat history for a user")
+async def get_chat_history(thread_id: str):
+    try:
+        cursor = chat_collection.find({"user_id": thread_id})
+        chat_records = await cursor.to_list(length=None)
+        
+        if chat_records is None:
+            return []
+    
+        history = [
+            {
+                **record,
+                "_id": str(record["_id"]),
+                "user_id": str(record["user_id"])
+            }
+            for record in chat_records
+        ]
+        
+        return {"status": "success", "data":history}
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while retrieving chat history: {str(e)}"
         )

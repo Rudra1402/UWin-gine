@@ -32,7 +32,8 @@ class ChatModel(BaseModel):
     user_id: PyObjectId = Field(..., description="Reference to the user who sent/received the message")
     timestamp: datetime = Field(default_factory=utc_now, description="Timestamp of the message")
     role: str = Field(..., description="The role of the message sender, either 'user' or 'bot'")
-    message: str = Field(..., description="The actual chat message content")
+    prompt: str = Field(..., description="The user prompt")
+    answer: str = Field(..., description="The LLM response")
 
     class Config:
         populate_by_name = True
@@ -49,3 +50,11 @@ class ChatModel(BaseModel):
 class QueryRequestModel(BaseModel):
     thread_id: str
     question: str
+
+class ChatRecord(BaseModel):
+    id: str
+    user_id: str
+    timestamp: datetime
+    role: str
+    prompt: str
+    answer: str
