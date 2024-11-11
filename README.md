@@ -1,6 +1,6 @@
 # UWingine
 
-UWingine is an AI-powered chatbot platform designed to simplify and enhance the academic experience for students. This solution automates the retrieval of academic information, such as policies, course details, and procedures, providing quick and accurate responses with references to original documents. UWingine leverages web scraping, cloud-based storage, and a large language model (LLM) to deliver relevant information efficiently. [Visit🚀](http://uwingine.s3-website-us-east-1.amazonaws.com/)
+UWingine is an AI-powered chatbot platform designed to simplify and enhance the academic experience for students. This solution automates the retrieval of academic information, such as policies, course details, and procedures, providing quick and accurate responses with references to original documents. UWingine leverages web scraping, cloud-based storage, and a large language model (LLM) to deliver relevant information efficiently. [Visit](http://uwingine.s3-website-us-east-1.amazonaws.com/)🚀
 
 ---
 
