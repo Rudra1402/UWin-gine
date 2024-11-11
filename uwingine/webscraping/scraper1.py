@@ -4,7 +4,9 @@ import requests
 import re
 import threading
 import concurrent.futures
+import json
 
+from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -55,9 +57,9 @@ class Scraper:
         filename = url.split('/')[-1]
         file_path = os.path.join(folder, filename)
 
-        if os.path.exists(file_path):
-            print(f"{filename} already exists in {folder}, skipping download.")
-            return
+        # if os.path.exists(file_path):
+        #     print(f"{filename} already exists in {folder}, skipping download.")
+        #     return
 
         response = requests.get(url, stream=True)
         if response.status_code == 200:
@@ -231,6 +233,60 @@ class Scraper:
             except Exception as e:
                 print(f"Error processing policy: {e}")
 
+    def scrape_academic_dates(self):
+        """Scrapes the academic dates from a specific page and handles pagination."""
+        base_url = 'https://www.uwindsor.ca/registrar/events-listing'
+        self.driver.get(base_url)
+        academic_dates = []
+        
+        while True:
+            try:
+                # Wait for the table containing the dates to load
+                self.wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "table.views-table")))
+                rows = self.driver.find_elements(By.CSS_SELECTOR, "table.views-table tbody tr")
+                
+                for row in rows:
+                    date = row.find_element(By.CSS_SELECTOR, "td.views-field-field-event-date").text.strip()
+                    event = row.find_element(By.CSS_SELECTOR, "td.views-field-title a").text.strip()
+                    event_link = row.find_element(By.CSS_SELECTOR, "td.views-field-title a").get_attribute("href")
+                    academic_dates.append({'date': date, 'event': event, 'event link': event_link })
+                
+                # Navigate to the next page if available
+                next_page = self.driver.find_elements(By.CSS_SELECTOR, "ul.pagination li.next a")
+                if next_page:
+                    next_page_link = next_page[0].get_attribute('href')
+                    self.driver.get(next_page_link)
+                else:
+                    break
+            except Exception as e:
+                print("Failed to scrape academic dates:", str(e))
+                break
+
+        folder_path = self.setup_directory("Important Academic Dates")
+        self.save_to_json(academic_dates, folder_path, "Important_academic_dates")
+           
+        return academic_dates
+    
+    def save_to_json(self, data, folder, filename):
+        #Saves data to a JSON file in the specified folder.
+
+            #filename
+            dated_filename = f"{filename}.json"
+        
+            file_path = os.path.join(folder, dated_filename)
+
+            with open(file_path, 'w', encoding='utf-8') as json_file:
+                json.dump(data, json_file, ensure_ascii=False, indent=4)
+            
+            s3_url = self.s3_manager.upload_file(file_path)
+            self.dynamodb_manager.create_item({
+                "type": "important_academic_dates",
+                "title": dated_filename.replace(".json", ""),
+                "local_path": file_path,
+                "s3_url": s3_url,
+                "created_at": int(time.time() * 1000)
+            })
+
     def close(self):
         """Close the WebDriver."""
         self.driver.quit()
@@ -247,9 +303,14 @@ def main():
         scraper.get_senate_policies("Senate Policies")
         scraper.get_senate_policies("Senate Bylaws")
 
+        # Scrape academic dates
+        scraper.scrape_academic_dates()
+
+        # Save all PDFs to DynamoDB
         for pdf in scraper.pdfs:
             print(pdf)
             scraper.dynamodb_manager.create_item(pdf)
+
         print("All scraping tasks completed!")
 
     finally:
