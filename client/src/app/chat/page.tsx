@@ -49,7 +49,7 @@ function Page() {
 
     const fetchChatHistory = async (threadId: string) => {
         const history = await fetchChatHistoryApi(threadId);
-
+        console.log("History", history)
         const formattedHistory: Message[] = history.flatMap((record: ChatHistoryRecord) => [
             { text: record.prompt, isUser: true },
             { text: record.answer, isUser: false, references: record.references }
@@ -79,7 +79,7 @@ function Page() {
             });
             index++;
             if (index > text.length) clearInterval(intervalId);
-        }, 10);
+        }, 5);
     };
 
     const cleanText = (text: string) => {
@@ -92,39 +92,46 @@ function Page() {
 
     const sendMessage = async (): Promise<void> => {
         if (currentMessage.trim() === '' || isSending) return;
-
+    
         setIsSending(true);
         const userMessage: Message = {
             text: currentMessage,
             isUser: true
         };
         setMessages(prevMessages => [...prevMessages, userMessage]);
-
         setCurrentMessage('');
-
+    
+        // Temporary loading message
         const loadingMessage: Message = { text: '', isUser: false, loading: true };
         setMessages(prevMessages => [...prevMessages, loadingMessage]);
-
+    
         const requestBody: ApiRequestBody = {
             thread_id: threadId,
             question: currentMessage
         };
-
+    
         try {
             const data = await sendMessageApi(requestBody);
-
+    
             const cleanedMessage = cleanText(data.message);
-
+    
+            const references: Reference[] = Object.entries(data.result.source_pdf_links).map(([title, link]) => ({
+                title,
+                link: link as string,
+                pages: data.result.source_pdf_pages[title]
+            }));
+    
             const newBotMessage: Message = {
                 text: cleanedMessage,
                 isUser: false,
-                references: data.result.references || []
+                references: references
             };
-
+    
             setMessages(prevMessages => [
                 ...prevMessages.slice(0, -1),
                 newBotMessage
             ]);
+            animateResponse(cleanedMessage)
         } catch (error) {
             console.error("Error sending message:", error);
             setMessages(prevMessages => [
@@ -132,10 +139,9 @@ function Page() {
                 { text: "Failed to retrieve response.", isUser: false }
             ]);
         } finally {
-            console.log("Test Console",messages)
             setIsSending(false);
         }
-    };
+    };    
 
     return (
         <ChatLayout>
@@ -161,18 +167,18 @@ function Page() {
                                 ) : (
                                     <div className='flex flex-col items-start justify-center gap-2'>
                                         {message.references && message.references.length > 0 && (
-                                            <div className='flex flex-col items-start justify-center gap-1'>
+                                            <div className='flex flex-col items-start justify-center w-full gap-1'>
                                                 <div className='flex items-center gap-2 text-gray-600'>
-                                                    <GrResources className="text-lg" />{"Source"}
+                                                    <GrResources className="text-lg" />{"Sources"}
                                                 </div>
                                                 {/* Display only the first reference with sorted pages */}
-                                                <div className='flex flex-col w-full gap-2 bg-gray-100 rounded-lg shadow'>
+                                                <div className='flex flex-col gap-2 w-full'>
                                                     <Link
                                                         href={message.references[0].link}
                                                         target='_blank'
-                                                        className='flex flex-col p-2 bg-white border rounded-md shadow text-gray-700 hover:bg-blue-50'
+                                                        className='flex flex-col p-2 min-w-[33%] max-w-[33%] bg-gray-100 border rounded-md shadow text-gray-700 hover:bg-blue-50'
                                                     >
-                                                        <p className="font-semibold text-blue-600">{message.references[0].title}</p>
+                                                        <p className="font-semibold text-blue-600 text-ellipsis overflow-hidden line-clamp-1">{message.references[0].title}</p>
                                                         <p className="text-sm text-gray-500">
                                                             Pages: {message.references[0].pages.sort((a, b) => a - b).join(", ")}
                                                         </p>

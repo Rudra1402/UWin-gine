@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react';
 import Navbar from '@/components/navbar/LoginNavbar';
 import { getUserByID } from '@/apis/userApis';
+import {capitalizeFirstLetter} from '../../utils/capitalizeFirstLetter'
 
 interface UserData {
     first_name: string;
     last_name: string;
     email: string;
     id: string;
-    usertype: string;
+    user_type: string;
 }
 
 const ProfilePage = () => {
@@ -50,14 +51,14 @@ const ProfilePage = () => {
             <div className="max-w-3xl mx-auto p-6">
                 <div className="bg-white p-8 rounded-lg shadow-lg flex flex-col items-center text-center">
                     <div className="w-24 h-24 rounded-full bg-blue-400 flex items-center justify-center text-3xl text-white font-semibold mb-4">
-                        {data.first_name[0]}{data.last_name[0]}
+                        {capitalizeFirstLetter(data.first_name[0])}{capitalizeFirstLetter(data.last_name[0])}
                     </div>
                     <h2 className="text-2xl font-bold text-gray-800 mb-1">
-                        {data.first_name} {data.last_name}
+                        {capitalizeFirstLetter(data.first_name)} {capitalizeFirstLetter(data.last_name)}
                     </h2>
-                    <p className="text-gray-600 mb-2">{data.email}</p>
+                    <p className="text-gray-600 mb-3 mt-1">{data.email}</p>
                     <span className="px-4 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
-                        {data.usertype.split('-')[0].toUpperCase() + " " + data.usertype.split('-')[1].toUpperCase()}
+                        {data.user_type.toUpperCase()}
                     </span>
                 </div>
             </div>
