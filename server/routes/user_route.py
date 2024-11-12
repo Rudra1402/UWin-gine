@@ -156,22 +156,35 @@ async def delete_user(id: str):
 async def process_query(query_request: QueryRequestModel = Body(...), response: Response = None):
     try:
         user = await user_collection.find_one({"_id": ObjectId(query_request.thread_id)})
-        print(user)
-        print("Calling LLM from server!")
         d = main(thread_id=query_request.thread_id, question=query_request.question)
 
         if not d or 'answer' not in d or d['answer'] is None:
             raise ValueError("The main function returned an invalid response")
+
+        # Extract and format references from LLM response
+        source_pages = d.get('source_pdf_pages', {})
+        source_links = d.get('source_pdf_links', {})
+
+        # Construct the references list
+        references = [
+            {
+                "title": title,
+                "link": source_links.get(title, ""),
+                "pages": list(map(int, source_pages.get(title, [])))  # Ensure pages are stored as integers
+            }
+            for title in source_pages if title in source_links  # Only add if both page and link exist
+        ]
 
         if user:
             chat_data = ChatModel(
                 user_id=str(query_request.thread_id),
                 role=user["user_type"],
                 prompt=query_request.question,
-                answer=d['answer']
+                answer=d['answer'],
+                references=references
             )
 
-            chat_collection.insert_one(chat_data.model_dump(by_alias=True, exclude=["id"]))
+            await chat_collection.insert_one(chat_data.model_dump(by_alias=True, exclude=["id"]))
 
         result = {
             "message": f"Query '{d['answer']}' has been processed for user!",

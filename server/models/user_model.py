@@ -27,6 +27,11 @@ class UserResponseModel(BaseModel):
     statusCode: int
     data: UserModel
 
+class ReferenceModel(BaseModel):
+    title: str = Field(..., description="Title of the referenced document")
+    link: str = Field(..., description="URL link to the referenced document")
+    pages: list[int] = Field(..., description="List of pages referenced in the document")
+
 class ChatModel(BaseModel):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     user_id: PyObjectId = Field(..., description="Reference to the user who sent/received the message")
@@ -34,18 +39,11 @@ class ChatModel(BaseModel):
     role: str = Field(..., description="The role of the message sender, either 'user' or 'bot'")
     prompt: str = Field(..., description="The user prompt")
     answer: str = Field(..., description="The LLM response")
+    references: list[ReferenceModel] = Field(default_factory=list, description="List of references for the answer")
 
     class Config:
         populate_by_name = True
         arbitrary_types_allowed = True
-        json_schema_extra = {
-            "example": {
-                "user_id": "605c72a1d3e3b69a2f5d8f9a",
-                "timestamp": "2024-10-30T12:34:56Z",
-                "role": "user",
-                "message": "Hello! How can I help you today?"
-            }
-        }
 
 class QueryRequestModel(BaseModel):
     thread_id: str

@@ -3,17 +3,25 @@ import ChatLayout from '@/components/layouts/ChatLayout';
 import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { IoSend } from 'react-icons/io5';
-import { MdQuestionAnswer } from 'react-icons/md'
+import { MdQuestionAnswer } from 'react-icons/md';
 import { sendMessageApi, fetchChatHistoryApi } from '../../apis/chatApis';
-import { getUserId } from '../../utils/getUser'
+import { getUserId } from '../../utils/getUser';
 import { GrResources } from 'react-icons/gr';
 import Link from 'next/link';
+
+// Define a type for each reference in the chat record
+type Reference = {
+    title: string;
+    link: string;
+    pages: number[];
+};
 
 // Define a type for the message object
 type Message = {
     text: string;
     isUser: boolean;
     loading?: boolean;
+    references?: Reference[];
 };
 
 // Define a type for the API request body
@@ -25,6 +33,7 @@ type ApiRequestBody = {
 type ChatHistoryRecord = {
     prompt: string;
     answer: string;
+    references: Reference[];
 };
 
 function Page() {
@@ -33,8 +42,6 @@ function Page() {
     const [isSending, setIsSending] = useState<boolean>(false);
     const [threadId, setThreadId] = useState<string>('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const [sourcePdfLinks, setSourcePdfLinks] = useState<{ [key: string]: string }>({});
-    const [sourcePdfPages, setSourcePdfPages] = useState<{ [key: string]: number[] }>({});
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -42,12 +49,14 @@ function Page() {
 
     const fetchChatHistory = async (threadId: string) => {
         const history = await fetchChatHistoryApi(threadId);
-        
+
         const formattedHistory: Message[] = history.flatMap((record: ChatHistoryRecord) => [
             { text: record.prompt, isUser: true },
-            { text: record.answer, isUser: false }
+            { text: record.answer, isUser: false, references: record.references }
         ]);
-        
+
+        console.log("Test",formattedHistory)
+
         setMessages(formattedHistory);
     };
 
@@ -60,14 +69,6 @@ function Page() {
         }
     }, [])
 
-    const cleanText = (text: string) => {
-        return text
-            .replace(/^Query\s*'*/, '')
-            .replace(/\s*has been processed for user!?$/, '')
-            .replace(/^'|['\s]+$/g, '')
-            .trim();
-    };
-
     const animateResponse = (text: string) => {
         let index = 0;
         const intervalId = setInterval(() => {
@@ -77,9 +78,16 @@ function Page() {
                 return updatedMessages;
             });
             index++;
-
             if (index > text.length) clearInterval(intervalId);
         }, 10);
+    };
+
+    const cleanText = (text: string) => {
+        return text
+            .replace(/^Query\s*'*/, '')
+            .replace(/\s*has been processed for user!?$/, '')
+            .replace(/^'|['\s]+$/g, '')
+            .trim();
     };
 
     const sendMessage = async (): Promise<void> => {
@@ -102,23 +110,31 @@ function Page() {
             question: currentMessage
         };
 
-        const data = await sendMessageApi(requestBody);
+        try {
+            const data = await sendMessageApi(requestBody);
 
-        setSourcePdfLinks(data.result.source_pdf_links || {});
-        setSourcePdfPages(data.result.source_pdf_pages || {});
+            const cleanedMessage = cleanText(data.message);
 
-        const cleanedMessage = cleanText(data.message);
-
-        setMessages(prevMessages => [
-            ...prevMessages.slice(0, -1),
-            {
+            const newBotMessage: Message = {
                 text: cleanedMessage,
-                isUser: false
-            }
-        ]);
+                isUser: false,
+                references: data.result.references || []
+            };
 
-        animateResponse(cleanedMessage);
-        setIsSending(false);
+            setMessages(prevMessages => [
+                ...prevMessages.slice(0, -1),
+                newBotMessage
+            ]);
+        } catch (error) {
+            console.error("Error sending message:", error);
+            setMessages(prevMessages => [
+                ...prevMessages.slice(0, -1),
+                { text: "Failed to retrieve response.", isUser: false }
+            ]);
+        } finally {
+            console.log("Test Console",messages)
+            setIsSending(false);
+        }
     };
 
     return (
@@ -144,31 +160,31 @@ function Page() {
                                     <p className={`text-gray-700 px-4 py-3 rounded-lg shadow bg-blue-100`}>{message.text}</p>
                                 ) : (
                                     <div className='flex flex-col items-start justify-center gap-2'>
-                                        <div className='flex flex-col items-start justify-center gap-1 text-gray-600'>
-                                            <div className='flex items-center justify-start gap-3'>
-                                                <GrResources />{"Sources"}
-                                            </div>
-                                            <div className='flex items-center w-full justify-start gap-2'>
-                                                {Object.keys(sourcePdfLinks).length > 0 && Object.entries(sourcePdfLinks).map(([docName, link]) => (
+                                        {message.references && message.references.length > 0 && (
+                                            <div className='flex flex-col items-start justify-center gap-1'>
+                                                <div className='flex items-center gap-2 text-gray-600'>
+                                                    <GrResources className="text-lg" />{"Source"}
+                                                </div>
+                                                {/* Display only the first reference with sorted pages */}
+                                                <div className='flex flex-col w-full gap-2 bg-gray-100 rounded-lg shadow'>
                                                     <Link
-                                                        key={docName}
-                                                        href={link}
+                                                        href={message.references[0].link}
                                                         target='_blank'
-                                                        className='p-2 w-1/3 rounded-md bg-gray-100 text-gray-600 text-wrap leading-5'
+                                                        className='flex flex-col p-2 bg-white border rounded-md shadow text-gray-700 hover:bg-blue-50'
                                                     >
-                                                        <p className="font-medium text-blue-700 line-clamp-2">{docName}</p>
+                                                        <p className="font-semibold text-blue-600">{message.references[0].title}</p>
                                                         <p className="text-sm text-gray-500">
-                                                            Pages: {sourcePdfPages[docName]?.join(", ") || "N/A"}
+                                                            Pages: {message.references[0].pages.sort((a, b) => a - b).join(", ")}
                                                         </p>
                                                     </Link>
-                                                ))}
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className='flex flex-col items-start justify-center gap-1 text-gray-600'>
-                                            <div className='flex items-center justify-start gap-3'>
-                                                <MdQuestionAnswer />{"Answer"}
+                                        )}
+                                        <div className='flex flex-col items-start justify-center gap-1 text-gray-600 mt-2'>
+                                            <div className='flex items-center gap-2'>
+                                                <MdQuestionAnswer className="text-lg" />{"Answer"}
                                             </div>
-                                            <ReactMarkdown className={'text-gray-700 px-4 py-3 rounded-lg shadow bg-gray-100'}>{message.text}</ReactMarkdown>
+                                            <ReactMarkdown className='text-gray-700 px-4 py-3 rounded-lg shadow bg-gray-100'>{message.text}</ReactMarkdown>
                                         </div>
                                     </div>
                                 )}
