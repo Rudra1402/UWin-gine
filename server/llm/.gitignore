@@ -1,7 +1,0 @@
-dockerfile
-.env
-/downloads
-*.pdf
-*.ipynb
-/webscraping
-/prompts
