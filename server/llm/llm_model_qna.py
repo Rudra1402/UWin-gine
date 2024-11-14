@@ -216,6 +216,7 @@ def main(thread_id: str, question: str) -> dict:
     pdf_pages = {}
     pdf_links = {}
 
+    print(result)
     # Iterate over each document
     for doc in result['context']:
         pdf_name = doc.metadata['pdf_name']
