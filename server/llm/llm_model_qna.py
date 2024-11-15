@@ -18,7 +18,7 @@ from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import BaseMessage, RemoveMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.checkpoint.postgres import PostgresSaver # type: ignore
 from langgraph.graph import START, END, MessagesState, StateGraph
@@ -42,8 +42,10 @@ class ChatModelQnA():
     def __init__(self) -> None:
         self._workflow = StateGraph(state_schema=State)
         # Define the (single) node in the graph
-        self._workflow.add_edge(START, "model")
+        self._workflow.add_node("filter", self._filter_messages)
         self._workflow.add_node("model", self._call_model)
+        self._workflow.add_edge(START, "filter")
+        self._workflow.add_edge("filter", "model")
 
         self._connection_kwargs = {
             "autocommit": True,
@@ -53,6 +55,18 @@ class ChatModelQnA():
         # memory = MemorySaver()
         # In the invocation process, _app can now handle config for personalized queries
         # self._app = self._workflow.compile(checkpointer=memory)
+    
+    def _filter_messages(self, state: State):
+        # Delete all but the 6 most recent messages
+        delete_messages = [RemoveMessage(id=m.id) for m in state["chat_history"][:-6]]
+        print(delete_messages)
+        print('Length of new list of messages: ', len(delete_messages))
+        return {
+            "chat_history": delete_messages,
+            "input": state['input'],
+            "answer": state['answer'],
+            "context": state['context']
+        }
         
     def _call_model(self, state: State, config: dict = None):
         # Use thread_id from config if provided
@@ -86,8 +100,7 @@ class ChatModelQnA():
             kwargs=self._connection_kwargs
         ) as pool:
             cp = PostgresSaver(pool)
-            # cp.setup()
-            print('Connected to user chat..')
+            cp.setup()
             self._app = self._workflow.compile(checkpointer=cp)
             return self._app.invoke(state, config=config)
 
@@ -216,7 +229,8 @@ def main(thread_id: str, question: str) -> dict:
     pdf_pages = {}
     pdf_links = {}
 
-    print(result)
+    print("Length of chat history: ", len(result['chat_history']))
+    print("Context first 5 docs: ", result['context'][:5])
     # Iterate over each document
     for doc in result['context']:
         pdf_name = doc.metadata['pdf_name']
