@@ -9,9 +9,13 @@ client = AsyncIOMotorClient(os.getenv("MONGO_URL"))
 db = client["college"]
 user_collection = db["users"]
 chat_collection = db["chats"]
+date_chat_collection = db["dateChats"]
 
 def get_user_collection():
     return db["users"]
 
 def get_chat_collection():
     return db["chats"]
+
+def get_date_chat_collection():
+    return db["date_chats"]
