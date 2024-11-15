@@ -2,7 +2,7 @@ import os
 import argparse
 from dotenv import load_dotenv
 load_dotenv()
-import psycopg2
+
 from langchain_postgres import PGVector
 from langchain_postgres.vectorstores import PGVector
 from langchain_groq import ChatGroq
