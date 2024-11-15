@@ -45,6 +45,18 @@ class ChatModel(BaseModel):
         populate_by_name = True
         arbitrary_types_allowed = True
 
+class DateChatModel(BaseModel):
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    user_id: PyObjectId = Field(..., description="Reference to the user who sent/received the message")
+    timestamp: datetime = Field(default_factory=utc_now, description="Timestamp of the message")
+    role: str = Field(..., description="The role of the message sender, either 'user' or 'bot'")
+    prompt: str = Field(..., description="The user prompt")
+    answer: str = Field(..., description="The LLM response")
+    
+    class Config:
+        populate_by_name = True
+        arbitrary_types_allowed = True
+
 class QueryRequestModel(BaseModel):
     thread_id: str
     question: str

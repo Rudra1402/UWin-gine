@@ -6,9 +6,9 @@ from fastapi import APIRouter, Body, HTTPException, status, Response
 from pydantic import EmailStr
 from bson import ObjectId
 from pymongo.errors import PyMongoError, DuplicateKeyError
-from models.user_model import UserModel, LoginModel, QueryRequestModel, UserResponseModel, ChatModel, ChatRecord
+from models.user_model import UserModel, LoginModel, QueryRequestModel, UserResponseModel, ChatModel, DateChatModel, ChatRecord
 from core.security import hash_password, verify_password
-from database.connection import user_collection, chat_collection
+from database.connection import user_collection, chat_collection, date_chat_collection
 from typing import Union
 from datetime import datetime, timedelta, timezone
 import jwt
@@ -16,7 +16,8 @@ import jwt
 load_dotenv()
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'llm')))
-from llm_model_qna import main
+from llm_model_qna import main as MainChat
+from llm_model_qna_dates import main as LLMDates
 
 router = APIRouter()
 
@@ -156,7 +157,7 @@ async def delete_user(id: str):
 async def process_query(query_request: QueryRequestModel = Body(...), response: Response = None):
     try:
         user = await user_collection.find_one({"_id": ObjectId(query_request.thread_id)})
-        d = main(thread_id=query_request.thread_id, question=query_request.question)
+        d = MainChat(thread_id=query_request.thread_id, question=query_request.question)
 
         if not d or 'answer' not in d or d['answer'] is None:
             raise ValueError("The main function returned an invalid response")
@@ -185,6 +186,40 @@ async def process_query(query_request: QueryRequestModel = Body(...), response: 
             )
 
             await chat_collection.insert_one(chat_data.model_dump(by_alias=True, exclude=["id"]))
+
+        result = {
+            "message": f"Query '{d['answer']}' has been processed for user!",
+            "result": d
+        }
+        
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while processing the query: {str(e)}"
+        )
+
+@router.post(
+    "/datechat/",
+    response_description="Process user's dates query",
+    status_code=status.HTTP_200_OK
+)
+async def process_date_chat_query(query_request: QueryRequestModel = Body(...), response: Response = None):
+    try:
+        user = await user_collection.find_one({"_id": ObjectId(query_request.thread_id)})
+        d = LLMDates(thread_id=query_request.thread_id, question=query_request.question)
+
+        if not d or 'answer' not in d or d['answer'] is None:
+            raise ValueError("The mainw function returned an invalid response")
+
+        if user:
+            date_chat_data = DateChatModel(
+                user_id=str(query_request.thread_id),
+                role=user["user_type"],
+                prompt=query_request.question,
+                answer=d['answer'],
+            )
+            await date_chat_collection.insert_one(date_chat_data.model_dump(by_alias=True, exclude=["id"]))
 
         result = {
             "message": f"Query '{d['answer']}' has been processed for user!",
