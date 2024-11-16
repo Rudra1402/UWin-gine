@@ -1,14 +1,14 @@
 import api from "@/axios/axios";
 import { toast } from "react-toastify";
 
-export const handleSignup = async (e, formData, setFormData) => {
+export const handleSignup = async (e, formData, setFormData, router) => {
     e.preventDefault();
 
     try {
         const response = await api.post('/user/signup/', formData);
 
-        if (response.status !== 200) {
-            toast.error('Signup failed!', { autoClose: 2000 });
+        if (response.data?.status == "error") {
+            toast.error(response.data?.message, { autoClose: 2000 });
             return;
         }
 
@@ -21,10 +21,11 @@ export const handleSignup = async (e, formData, setFormData) => {
             password: '',
             user_type: '',
         });
-        toast.success('Signup success!', { autoClose: 2000 });
+        router.push('/login')
+        // toast.success('Signup success!', { autoClose: 2000 });
     } catch (error) {
-        console.error('Error signing up:', error);
-        toast.error('Signup failed!', { autoClose: 2000 });
+        console.log('Error signing up:', error);
+        toast.error(error?.message, { autoClose: 2000 });
     }
 };
 
@@ -50,9 +51,9 @@ export const handleLogin = async (e, loginData, setLoginData, router, setUser, s
         localStorage.setItem("user", JSON.stringify(data));
         router.push("/");
 
-        toast.success('Login success!', { autoClose: 2000 });
+        // toast.success('Login success!', { autoClose: 2000 });
     } catch (error) {
-        console.error('Error logging in:', error);
+        console.log('Error logging in:', error);
         toast.error('Login failed!', { autoClose: 2000 });
     }
 };
@@ -67,7 +68,7 @@ export const handleLogout = async (router, setUser, setIsLoggedIn) => {
 
         toast.success('Logout successful!', { autoClose: 2000 });
     } catch (error) {
-        console.error('Error logging out:', error);
+        console.log('Error logging out:', error);
         toast.error('Error logging out!', { autoClose: 2000 });
     }
 };
@@ -90,7 +91,7 @@ export const getUserByID = async(id, setData, setError, setLoading) => {
         }
     } catch (error) {
         setError(error?.message || 'An error occurred');
-        console.error('Error fetching user by ID:', error);
+        console.log('Error fetching user by ID:', error);
     } finally {
         setLoading(false);
     }

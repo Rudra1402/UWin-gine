@@ -22,12 +22,20 @@ function HomePage() {
         <p className="mt-4 text-xl text-gray-700 text-center max-w-2xl">
           Streamline your access to university policies, academic calendars, and documentation with an LLM-powered chatbot that provides timely, accurate answers.
         </p>
+        <div className='flex items-center justify-center gap-4'>
         <Link
           href={'/chat'}
           className="mt-6 px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 font-semibold text-lg"
         >
-          Start Asking
+          General Chat
         </Link>
+        <Link
+          href={'/quickdates'}
+          className="mt-6 px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 font-semibold text-lg"
+        >
+          Important Dates
+        </Link>
+        </div>
       </header>
 
       {/* Features Section */}

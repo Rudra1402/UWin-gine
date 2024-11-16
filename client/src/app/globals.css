@@ -19,3 +19,8 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+#dates-chat a {
+  color: blue !important; /* Ensure this overrides other styles */
+  text-decoration: underline; /* Optional */
+}

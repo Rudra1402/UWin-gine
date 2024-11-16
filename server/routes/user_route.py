@@ -52,15 +52,15 @@ async def signup(user: UserModel = Body(...)):
         if created_user:
             return UserModel(**created_user)
     except DuplicateKeyError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"User registration failed: {str(e)}"
-        )
+        return {
+            "status": "error",
+            "message": "User already exists!"
+        }
     except PyMongoError as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Server error during user registration: {str(e)}"
-        )
+        return {
+            "status": "error",
+            "message": "Internal Server Error"
+        }
 
 @router.post(
     "/login/",
@@ -237,6 +237,32 @@ async def process_date_chat_query(query_request: QueryRequestModel = Body(...), 
 async def get_chat_history(thread_id: str):
     try:
         cursor = chat_collection.find({"user_id": thread_id})
+        chat_records = await cursor.to_list(length=None)
+        
+        if chat_records is None:
+            return []
+    
+        history = [
+            {
+                **record,
+                "_id": str(record["_id"]),
+                "user_id": str(record["user_id"])
+            }
+            for record in chat_records
+        ]
+        
+        return {"status": "success", "data":history}
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while retrieving chat history: {str(e)}"
+        )
+    
+@router.get("/chat/datehistory/{thread_id}", description="Retrieve chat history for a user")
+async def get_chat_history(thread_id: str):
+    try:
+        cursor = date_chat_collection.find({"user_id": thread_id})
         chat_records = await cursor.to_list(length=None)
         
         if chat_records is None:
