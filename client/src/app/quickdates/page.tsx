@@ -7,7 +7,6 @@ import { IoSend } from 'react-icons/io5';
 import { MdQuestionAnswer } from 'react-icons/md';
 import { sendDateMessageApi, fetchDateChatHistoryApi } from '../../apis/chatApis';
 import { getUserId } from '../../utils/getUser';
-import { toast } from 'react-toastify';
 
 const samplePrompts = ["When is Family Day?", "List all the holidays", "When are the Summer 2025 exams?"]
 
