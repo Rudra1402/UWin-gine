@@ -8,7 +8,6 @@ import { sendMessageApi, fetchChatHistoryApi } from '../../apis/chatApis';
 import { getUserId } from '../../utils/getUser';
 import { GrResources } from 'react-icons/gr';
 import Link from 'next/link';
-import { toast } from 'react-toastify';
 
 const samplePrompts = ["What are the courses in Psychology for Master's degree?", "How are AAUs designated and its full form?", "What are the provisions for disabled students?"]
 
