@@ -35,6 +35,7 @@ class ReferenceModel(BaseModel):
 class ChatModel(BaseModel):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     user_id: PyObjectId = Field(..., description="Reference to the user who sent/received the message")
+    session_id: PyObjectId = Field(..., description="Unique identifier for the chat session")
     timestamp: datetime = Field(default_factory=utc_now, description="Timestamp of the message")
     role: str = Field(..., description="The role of the message sender, either 'user' or 'bot'")
     prompt: str = Field(..., description="The user prompt")
@@ -43,6 +44,15 @@ class ChatModel(BaseModel):
 
     class Config:
         populate_by_name = True
+        arbitrary_types_allowed = True
+
+class UserChatSession(BaseModel):
+    user_id: PyObjectId = Field(..., description="The ID of the user who owns the session")
+    session_id: PyObjectId = Field(..., description="Unique identifier for the chat session")
+    started_at: Optional[datetime] = Field(default_factory=utc_now, description="Start time of the session")
+    ended_at: Optional[datetime] = Field(default=None, description="End time of the session, if applicable")
+
+    class Config:
         arbitrary_types_allowed = True
 
 class DateChatModel(BaseModel):
@@ -56,10 +66,10 @@ class DateChatModel(BaseModel):
     class Config:
         populate_by_name = True
         arbitrary_types_allowed = True
-
 class QueryRequestModel(BaseModel):
     thread_id: str
     question: str
+    session_id: str
 
 class ChatRecord(BaseModel):
     id: str

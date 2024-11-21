@@ -6,9 +6,9 @@ from fastapi import APIRouter, Body, HTTPException, status, Response
 from pydantic import EmailStr
 from bson import ObjectId
 from pymongo.errors import PyMongoError, DuplicateKeyError
-from models.user_model import UserModel, LoginModel, QueryRequestModel, UserResponseModel, ChatModel, DateChatModel, ChatRecord
+from models.user_model import UserModel, LoginModel, QueryRequestModel, UserResponseModel, ChatModel, DateChatModel, UserChatSession
 from core.security import hash_password, verify_password
-from database.connection import user_collection, chat_collection, date_chat_collection
+from database.connection import user_collection, chat_collection, date_chat_collection, user_chat_session_collection
 from typing import Union
 from datetime import datetime, timedelta, timezone
 import jwt
@@ -180,6 +180,7 @@ async def process_query(query_request: QueryRequestModel = Body(...), response: 
             chat_data = ChatModel(
                 user_id=str(query_request.thread_id),
                 role=user["user_type"],
+                session_id=query_request.session_id,
                 prompt=query_request.question,
                 answer=d['answer'],
                 references=references
@@ -198,6 +199,52 @@ async def process_query(query_request: QueryRequestModel = Body(...), response: 
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred while processing the query: {str(e)}"
         )
+# Calling this API while creating new chat first time
+@router.post("/chat/session/start", response_model=UserChatSession, status_code=status.HTTP_201_CREATED)
+async def start_chat_session(user_id: str = Body(..., embed=True)):
+    try:
+        # Generate a new unique session ID
+        session_id = str(ObjectId())
+        
+        # Create a new session object with the provided user ID and generated session ID
+        new_session = UserChatSession(
+            user_id= user_id,
+            session_id=session_id,
+            started_at=utc_now()
+        )
+        
+        # Convert the Pydantic model to a dictionary for insertion into MongoDB
+        session_dict = new_session.dict(by_alias=True)
+        
+        # Insert the new session into the MongoDB collection asynchronously
+        insert_result = await user_chat_session_collection.insert_one(session_dict)
+        
+        # Retrieve the newly created session from MongoDB to return it in the response
+        created_session = await user_chat_session_collection.find_one({"_id": insert_result.inserted_id})
+        
+        # Return the session data as per the Pydantic model
+        return UserChatSession(**created_session)
+    except Exception as e:
+        # If an error occurs, raise an HTTPException with a 500 status code
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    
+from bson import ObjectId
+
+# /Calls this API to get total chats for logged-In user
+@router.get("/sessions/{user_id}", response_model=List[UserChatSession])
+async def get_sessions(user_id: str):
+    documents = await user_chat_session_collection.find({"user_id": user_id}).to_list(length=100)
+    sessions = [
+        UserChatSession(
+            id=str(session.get('_id')),
+            user_id=str(session['user_id']),
+            session_id=str(session['session_id']),
+            started_at=session.get('started_at'),
+            ended_at=session.get('ended_at')
+        ) for session in documents
+    ]
+    return sessions
+
 
 @router.post(
     "/datechat/",
@@ -233,10 +280,10 @@ async def process_date_chat_query(query_request: QueryRequestModel = Body(...), 
             detail=f"An error occurred while processing the query: {str(e)}"
         )
 
-@router.get("/chat/history/{thread_id}", description="Retrieve chat history for a user")
-async def get_chat_history(thread_id: str):
+@router.get("/chat/session/history/{session_id}", description="Retrieve chat history for a user")
+async def get_chat_history(session_id: str):
     try:
-        cursor = chat_collection.find({"user_id": thread_id})
+        cursor = chat_collection.find({"session_id": session_id})
         chat_records = await cursor.to_list(length=None)
         
         if chat_records is None:
