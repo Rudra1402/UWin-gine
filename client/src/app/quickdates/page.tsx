@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { IoSend } from 'react-icons/io5';
 import { MdQuestionAnswer } from 'react-icons/md';
-import { sendDateMessageApi, fetchDateChatHistoryApi, fetchSessionIdsByUser } from '../../apis/chatApis';
+import { sendDateMessageApi, fetchDateChatHistoryApi } from '../../apis/chatApis';
 import { getUserId } from '../../utils/getUser';
 
 const samplePrompts = ["When is Family Day?", "List all the holidays", "When are the Summer 2025 exams?"]
@@ -19,6 +19,7 @@ type Message = {
 type ApiRequestBody = {
     thread_id: string;
     question: string;
+    chat_type: string;
 };
 
 type ChatHistoryRecord = {
@@ -58,7 +59,6 @@ function Page() {
 
         if (uid) {
             fetchChatHistory(uid);
-            fetchSessionIdsByUser('d',uid);
         } else {
             setIsPageLoading(false);
         }
@@ -122,6 +122,7 @@ function Page() {
         const requestBody: ApiRequestBody = {
             thread_id: threadId,
             question: messageText,
+            chat_type: 'd'
         };
     
         try {
