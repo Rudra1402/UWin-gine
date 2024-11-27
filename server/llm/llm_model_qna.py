@@ -178,12 +178,39 @@ class ChatModelQnA():
         
         self._question_answer_chain = create_stuff_documents_chain(self._model, self._prompt)
         self._rag_chain = create_retrieval_chain(self._history_aware_retriever, self._question_answer_chain)
+    
+    def _determine_question_type(
+            self,
+            chat_history: list,
+            input: str,
+            ):
+        self._questiontype_prompt = ChatPromptTemplate(
+                [("system",''' 
+                    You are given a task to classify if a question is a casual one or not. 
+
+                    Respond with "No" if the statement or question directly or indirectly (as a follow-up question) strictly pertains to knowing anything about the academic policies, bylaws or academic information.
+                    Respond with "Yes" if the statement or question is about any other topic or signifies thanking you or greeting or salutation or an attempt to engage in normal conversation. 
+
+                    Output should be strictly Yes or No.
+                '''), 
+                MessagesPlaceholder('chat_history'),
+                MessagesPlaceholder('input')]
+        )
+
+        response = self._model.invoke(self._questiontype_prompt.invoke({
+            "chat_history": chat_history,
+            "input": [input]
+        }))
+
+        print("Response: ", response)
+
+        return response
 
 def main(thread_id: str, question: str) -> dict:
     """
         Main function
     """
-    model_name = "gemma2-9b-it"
+    model_name = "llama-3.1-70b-versatile"
     embedding_model_name = "sentence-transformers/all-MiniLM-L6-v2"
     temperature = 0.1
 
@@ -225,12 +252,15 @@ def main(thread_id: str, question: str) -> dict:
     response['answer'] = result['answer']
     response['user_id'] = thread_id
 
+    casual_or_not = model_obj._determine_question_type(result['chat_history'], result['input']).content
+
     # Dictionary to store pdf names as keys and lists of page numbers as values
     pdf_pages = {}
     pdf_links = {}
 
     print("Length of chat history: ", len(result['chat_history']))
     # print("Context first 5 docs: ", result['context'][:5])
+    # print("Casual decision: ", casual_or_not)
     # Iterate over each document
     for doc in result['context']:
         pdf_name = doc.metadata['pdf_name']
@@ -243,6 +273,14 @@ def main(thread_id: str, question: str) -> dict:
             pdf_links[pdf_name] = pdf_link
         pdf_pages[pdf_name].append(page_number)
     
+    print("Casual decision: ", casual_or_not)
+    if casual_or_not.strip()=="Yes":
+        response['source_pdf_pages'] =  []
+        response['source_pdf_links'] =  []
+        print(response['answer'])
+        return response
+    
+    print("Not a casual question")
     response['source_pdf_pages'] =  pdf_pages
     response['source_pdf_links'] =  pdf_links
     # print("Response: \n", response)
