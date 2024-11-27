@@ -1,10 +1,10 @@
 import api from "@/axios/axios";
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import { toast } from "react-toastify";
 
 export const fetchChatHistoryApi = async (threadId, setIsPageLoading) => {
     try {
-        const response = await api.get(`/user/chat/history/${threadId}`);
+        const response = await api.get(`/user/chat/session/history/${threadId}`);
 
         if (response.data?.status !== "success") {
             return [{
@@ -28,32 +28,46 @@ export const fetchChatHistoryApi = async (threadId, setIsPageLoading) => {
     }
 };
 
-export const sendMessageApi = async (requestBody) => {
+export const sendMessageApi = async (requestBody, setIsNewChat, setChatSessions, setCurrentSession, currentSession, chatSessions) => {
     try {
         // Make the POST request with Axios
         if (requestBody.thread_id == "") {
-            requestBody = {...requestBody, thread_id: uuidv4().replace(/-/g, '').substring(0, 24)}
+            requestBody = { ...requestBody, thread_id: uuidv4().replace(/-/g, '').substring(0, 24) }
         }
-        const response = await api.post('/user/chat', requestBody);
+
+        let headers = {};
+        if (currentSession) {
+            headers['currentsession'] = JSON.stringify(currentSession?.session_id);
+        }
+        const response = await api.post('/user/chat', requestBody, { headers });
 
         // Check if the response indicates an error status in the data
         if (response.data?.status === "error") {
             toast.error('Server processing error.', {
                 autoClose: 2000
             });
-            return { message: 'Error retrieving response from server.' }; 
+            return { message: 'Error retrieving response from server.' };
         }
 
         toast.success('Message sent successfully!', {
             autoClose: 2000
         });
         console.log(response.data)
-        // Return the response data
+        setIsNewChat(false)
+        setCurrentSession(response.data?.session);
+
+        setChatSessions((prevSessions) => {
+            const sessionExists = prevSessions.some(session => session?.session_id === response.data?.session?.session_id);
+            if (!sessionExists) {
+                return [...prevSessions, response.data.session];
+            }
+            return prevSessions;
+        });
+
         return response.data;
     } catch (error) {
         console.log('Failed to send message:', error);
 
-        // Handle any other errors, including network issues
         toast.error('Communication error.', {
             autoClose: 2000
         });
@@ -65,7 +79,7 @@ export const sendMessageApi = async (requestBody) => {
 export const sendDateMessageApi = async (requestBody) => {
     try {
         if (requestBody.thread_id == "") {
-            requestBody = {...requestBody, thread_id: uuidv4().replace(/-/g, '').substring(0, 24)}
+            requestBody = { ...requestBody, thread_id: uuidv4().replace(/-/g, '').substring(0, 24) }
         }
 
         const response = await api.post('/user/datechat', requestBody);
@@ -74,7 +88,7 @@ export const sendDateMessageApi = async (requestBody) => {
             toast.error('Server processing error.', {
                 autoClose: 2000
             });
-            return { message: 'Error retrieving response from server.' }; 
+            return { message: 'Error retrieving response from server.' };
         }
 
         toast.success('Message sent successfully!', {
@@ -117,3 +131,22 @@ export const fetchDateChatHistoryApi = async (threadId, setIsPageLoading) => {
         setIsPageLoading(false);
     }
 };
+
+export const fetchSessionIdsByUser = async (ctype, uid, setChatSessions, setCurrentSession, setIsNewChat) => {
+    try {
+        const res = await api.get(`/user/sessions/${ctype}/${uid}`)
+        console.log(res.data)
+        setChatSessions(res.data)
+        if (res.data.length > 0) {
+            setCurrentSession(res.data[0])
+        } else {
+            setIsNewChat(true)
+        }
+    } catch (error) {
+        console.log('Failed to fetch sessions:', error);
+        toast.error('Failed to fetch sessions.', {
+            autoClose: 2000
+        });
+        return { message: 'We are currently experiencing technical difficulties. Our team is actively working on resolving the issue. Please try again shortly.' };
+    }
+}

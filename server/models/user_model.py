@@ -47,8 +47,9 @@ class ChatModel(BaseModel):
         arbitrary_types_allowed = True
 
 class UserChatSession(BaseModel):
-    user_id: PyObjectId = Field(..., description="The ID of the user who owns the session")
-    session_id: PyObjectId = Field(..., description="Unique identifier for the chat session")
+    user_id: str = Field(..., description="The ID of the user who owns the session")
+    session_id: str = Field(..., description="Unique identifier for the chat session")
+    type: str = Field(..., description="The type of chat session")
     started_at: Optional[datetime] = Field(default_factory=utc_now, description="Start time of the session")
     ended_at: Optional[datetime] = Field(default=None, description="End time of the session, if applicable")
 
@@ -69,7 +70,7 @@ class DateChatModel(BaseModel):
 class QueryRequestModel(BaseModel):
     thread_id: str
     question: str
-    session_id: str
+    chat_type: str
 
 class ChatRecord(BaseModel):
     id: str

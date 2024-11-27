@@ -192,8 +192,8 @@ def main(thread_id: str, question: str) -> dict:
     """
     
     #params
-    connection="postgresql+psycopg://langchain:langchain321@54.147.167.63:5432/langchain"
-    chatConnectionString="postgres://langchain:langchain321@54.147.167.63:5432/langchain"
+    connection="postgresql+psycopg://langchain:langchain321@3.230.205.205:5432/langchain"
+    chatConnectionString="postgres://langchain:langchain321@3.230.205.205:5432/langchain"
     collection_name = "important_dates"
     model_name = "llama-3.1-70b-versatile"
     embedding_model_name = "sentence-transformers/all-MiniLM-L6-v2"

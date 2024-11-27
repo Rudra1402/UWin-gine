@@ -4,9 +4,10 @@ import ChatList from '../chatlist/ChatList';
 
 interface ChatLayoutProps {
     children: ReactNode;
+    type: string;
 }
 
-function ChatLayout({ children }: ChatLayoutProps) {
+function ChatLayout({ children, type }: ChatLayoutProps) {
 
     return (
         <div className='flex h-screen bg-gray-100'>
