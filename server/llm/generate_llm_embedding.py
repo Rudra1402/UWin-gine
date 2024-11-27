@@ -122,7 +122,7 @@ async def main():
     model_obj._initialize_semantic_chunker(breakpoint_threshold_type="percentile")
     
     # connection = "postgresql+psycopg://langchain:langchain@postgres:5432/langchain"
-    connection="postgresql+psycopg://langchain:langchain321@54.147.167.63:5432/langchain"
+    connection="postgresql+psycopg://langchain:langchain321@3.230.205.205:5432/langchain"
     collection_name = "my_docs"
 
     print(model_obj._semantic_chunks[:2])

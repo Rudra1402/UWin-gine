@@ -222,8 +222,8 @@ def main(thread_id: str, question: str) -> dict:
 
     print('Connecting to EC2 Postgres DB and Chat Memory..')
 
-    connection="postgresql+psycopg://langchain:langchain321@54.147.167.63:5432/langchain"
-    chatConnectionString="postgres://langchain:langchain321@54.147.167.63:5432/langchain"
+    connection="postgresql+psycopg://langchain:langchain321@3.230.205.205:5432/langchain"
+    chatConnectionString="postgres://langchain:langchain321@3.230.205.205:5432/langchain"
     collection_name = "initial_docs"
 
     vector_store = PGVector(
@@ -284,9 +284,9 @@ def main(thread_id: str, question: str) -> dict:
     response['source_pdf_pages'] =  pdf_pages
     response['source_pdf_links'] =  pdf_links
     # print("Response: \n", response)
-    print(response['answer'])
-    print(response['source_pdf_pages'])
-    print(response['source_pdf_links'])
+    # print(response['answer'])
+    # print(response['source_pdf_pages'])
+    # print(response['source_pdf_links'])
     return response
 
 if __name__ == "__main__":

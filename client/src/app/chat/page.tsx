@@ -4,10 +4,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { IoSend } from 'react-icons/io5';
 import { MdQuestionAnswer } from 'react-icons/md';
-import { sendMessageApi, fetchChatHistoryApi } from '../../apis/chatApis';
+import { sendMessageApi, fetchChatHistoryApi, fetchSessionIdsByUser } from '../../apis/chatApis';
 import { getUserId } from '../../utils/getUser';
 import { GrResources } from 'react-icons/gr';
 import Link from 'next/link';
+import { useUserContext } from '@/context/context';
 
 const samplePrompts = ["What are the courses in Psychology for Master's degree?", "How are AAUs designated and its full form?", "What are the provisions for disabled students?"]
 
@@ -30,6 +31,7 @@ type Message = {
 type ApiRequestBody = {
     thread_id: string;
     question: string;
+    chat_type: string;
 };
 
 type ChatHistoryRecord = {
@@ -45,6 +47,14 @@ function Page() {
     const [threadId, setThreadId] = useState<string>('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [isPageLoading, setIsPageLoading] = useState(true);
+    const {isNewChat, setIsNewChat, setChatSessions, setCurrentSession, chatSessions, currentSession} = useUserContext();
+
+    useEffect(() => {
+        if (isNewChat) {
+            setMessages([])
+            return;
+        }
+    }, [isNewChat])
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -55,6 +65,11 @@ function Page() {
     }, [])
 
     const fetchChatHistory = async (threadId: string) => {
+        console.log("New Chat", isNewChat)
+        if (isNewChat){
+            setMessages([])
+            return;
+        }
         const history = await fetchChatHistoryApi(threadId, setIsPageLoading);
         console.log("History", history)
         const formattedHistory: Message[] = history.flatMap((record: ChatHistoryRecord) => [
@@ -71,12 +86,12 @@ function Page() {
         const uid = getUserId()
         setThreadId(uid)
 
-        if (uid) {
-            fetchChatHistory(uid);
+        if (uid && currentSession) {
+            fetchChatHistory(currentSession?.session_id);
         } else {
             setIsPageLoading(false);
         }
-    }, [])
+    }, [currentSession])
 
     const handlePromptSelection = (prompt: string) => {
         setCurrentMessage(prompt);
@@ -121,15 +136,16 @@ function Page() {
 
         const requestBody: ApiRequestBody = {
             thread_id: threadId,
-            question: messageText
+            question: messageText,
+            chat_type: 'c'
         };
 
         try {
-            const data = await sendMessageApi(requestBody);
+            const data = await sendMessageApi(requestBody, setIsNewChat, setChatSessions, setCurrentSession, currentSession, chatSessions);
 
             const cleanedMessage = cleanText(data.message);
 
-            const references: Reference[] = Object.entries(data.result.source_pdf_links).map(([title, link]) => ({
+            const references: Reference[] = Object.entries(data?.result?.source_pdf_links).map(([title, link]) => ({
                 title,
                 link: link as string,
                 pages: data.result.source_pdf_pages[title]
@@ -158,7 +174,7 @@ function Page() {
     };
 
     return (
-        <ChatLayout>
+        <ChatLayout type={'c'}>
             {isPageLoading ?
                 <div className="flex items-center justify-center gap-4 text-gray-500 text-xl leading-none h-[calc(100%-60px)] overflow-auto pt-3 px-4">
                     Loading...

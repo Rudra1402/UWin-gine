@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { IoSend } from 'react-icons/io5';
 import { MdQuestionAnswer } from 'react-icons/md';
-import { sendDateMessageApi, fetchDateChatHistoryApi } from '../../apis/chatApis';
+import { sendDateMessageApi, fetchDateChatHistoryApi, fetchSessionIdsByUser } from '../../apis/chatApis';
 import { getUserId } from '../../utils/getUser';
 
 const samplePrompts = ["When is Family Day?", "List all the holidays", "When are the Summer 2025 exams?"]
@@ -58,6 +58,7 @@ function Page() {
 
         if (uid) {
             fetchChatHistory(uid);
+            fetchSessionIdsByUser('d',uid);
         } else {
             setIsPageLoading(false);
         }
@@ -144,7 +145,7 @@ function Page() {
     };   
 
     return (
-        <ChatLayout>
+        <ChatLayout type={'d'}>
             {isPageLoading ?
                 <div className="flex items-center justify-center gap-4 text-gray-500 text-xl leading-none h-[calc(100%-60px)] overflow-auto pt-3 px-4">
                     Loading...
