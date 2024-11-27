@@ -1,6 +1,7 @@
 import api from "@/axios/axios";
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from "react-toastify";
+import { getUserId } from "@/utils/getUser";
 
 export const fetchChatHistoryApi = async (threadId, setIsPageLoading) => {
     try {
@@ -28,9 +29,10 @@ export const fetchChatHistoryApi = async (threadId, setIsPageLoading) => {
     }
 };
 
-export const sendMessageApi = async (requestBody, setIsNewChat, setChatSessions, setCurrentSession, currentSession, chatSessions) => {
+export const sendMessageApi = async (requestBody, setIsNewChat, setChatSessions, setCurrentSession, currentSession) => {
     try {
-        // Make the POST request with Axios
+        const userId = getUserId();
+
         if (requestBody.thread_id == "") {
             requestBody = { ...requestBody, thread_id: uuidv4().replace(/-/g, '').substring(0, 24) }
         }
@@ -41,7 +43,6 @@ export const sendMessageApi = async (requestBody, setIsNewChat, setChatSessions,
         }
         const response = await api.post('/user/chat', requestBody, { headers });
 
-        // Check if the response indicates an error status in the data
         if (response.data?.status === "error") {
             toast.error('Server processing error.', {
                 autoClose: 2000
@@ -53,16 +54,18 @@ export const sendMessageApi = async (requestBody, setIsNewChat, setChatSessions,
             autoClose: 2000
         });
         console.log(response.data)
-        setIsNewChat(false)
-        setCurrentSession(response.data?.session);
+        if (userId) {
+            setIsNewChat(false)
+            setCurrentSession(response.data?.session);
 
-        setChatSessions((prevSessions) => {
-            const sessionExists = prevSessions.some(session => session?.session_id === response.data?.session?.session_id);
-            if (!sessionExists) {
-                return [...prevSessions, response.data.session];
-            }
-            return prevSessions;
-        });
+            setChatSessions((prevSessions) => {
+                const sessionExists = prevSessions.some(session => session?.session_id === response.data?.session?.session_id);
+                if (!sessionExists) {
+                    return [...prevSessions, response.data.session];
+                }
+                return prevSessions;
+            });
+        }
 
         return response.data;
     } catch (error) {

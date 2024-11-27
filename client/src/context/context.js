@@ -23,11 +23,6 @@ export const UserProvider = ({ children }) => {
     }
   }, []);
 
-  const addChatSession = (session) => {
-    setChatSessions(prev => [...prev, session]);
-    setCurrentSession(session);
-  };
-
   return (
     <UserContext.Provider value={{ user, setUser, isLoggedIn, setIsLoggedIn, chatSessions, currentSession, setCurrentSession, setChatSessions, isNewChat, setIsNewChat}}>
       {children}

@@ -186,6 +186,8 @@ async def process_query(query_request: QueryRequestModel = Body(...), response: 
             for title in source_pages if title in source_links
         ]
 
+        result = {}
+
         if user:
             # session_id = None
             new_session = None
@@ -232,41 +234,23 @@ async def process_query(query_request: QueryRequestModel = Body(...), response: 
                 ended_at=session_doc.get("ended_at")
             )
 
-        result = {
-            "message": f"Query '{d['answer']}' has been processed for user!",
-            "result": d,
-            "session": updated_session
-        }
-        
+            result = {
+                "message": f"Query '{d['answer']}' has been processed for user!",
+                "result": d,
+                "session": updated_session
+            }
+        else:
+            result = {
+                "message": f"Query '{d['answer']}' has been processed for user!",
+                "result": d
+            }
+
         return result
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred while processing the query: {str(e)}"
         )
-    
-@router.post("/chat/session/start", response_model=UserChatSession, status_code=status.HTTP_201_CREATED)
-async def start_chat_session(user_id: str = Body(..., embed=True), chat_type: str = Body(..., embed=True)):
-    try:
-        session_id = str(ObjectId())
-        
-        new_session = UserChatSession(
-            user_id= user_id,
-            session_id=session_id,
-            type=chat_type,
-            started_at=utc_now()
-        )
-        
-        session_dict = new_session.dict(by_alias=True)
-        
-        insert_result = await user_chat_session_collection.insert_one(session_dict)
-        
-        created_session = await user_chat_session_collection.find_one({"_id": insert_result.inserted_id})
-        
-        return UserChatSession(**created_session)
-    except Exception as e:
-        # If an error occurs, raise an HTTPException with a 500 status code
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
 # /Calls this API to get total chats for logged-In user
 @router.get("/sessions/{ctype}/{user_id}", response_model=List[UserChatSession])

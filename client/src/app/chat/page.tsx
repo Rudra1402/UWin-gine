@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { IoSend } from 'react-icons/io5';
 import { MdQuestionAnswer } from 'react-icons/md';
-import { sendMessageApi, fetchChatHistoryApi, fetchSessionIdsByUser } from '../../apis/chatApis';
+import { sendMessageApi, fetchChatHistoryApi } from '../../apis/chatApis';
 import { getUserId } from '../../utils/getUser';
 import { GrResources } from 'react-icons/gr';
 import Link from 'next/link';
@@ -47,7 +47,7 @@ function Page() {
     const [threadId, setThreadId] = useState<string>('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [isPageLoading, setIsPageLoading] = useState(true);
-    const {isNewChat, setIsNewChat, setChatSessions, setCurrentSession, chatSessions, currentSession} = useUserContext();
+    const {isNewChat, setIsNewChat, setChatSessions, setCurrentSession, currentSession} = useUserContext();
 
     useEffect(() => {
         if (isNewChat) {
@@ -71,13 +71,13 @@ function Page() {
             return;
         }
         const history = await fetchChatHistoryApi(threadId, setIsPageLoading);
-        console.log("History", history)
+        // console.log("History", history)
         const formattedHistory: Message[] = history.flatMap((record: ChatHistoryRecord) => [
             { text: record.prompt, isUser: true },
             { text: record.answer, isUser: false, references: record.references }
         ]);
 
-        console.log("Test", formattedHistory)
+        // console.log("Test", formattedHistory)
 
         setMessages(formattedHistory);
     };
@@ -141,7 +141,7 @@ function Page() {
         };
 
         try {
-            const data = await sendMessageApi(requestBody, setIsNewChat, setChatSessions, setCurrentSession, currentSession, chatSessions);
+            const data = await sendMessageApi(requestBody, setIsNewChat, setChatSessions, setCurrentSession, currentSession);
 
             const cleanedMessage = cleanText(data.message);
 

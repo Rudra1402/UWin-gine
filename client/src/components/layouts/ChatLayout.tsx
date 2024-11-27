@@ -11,7 +11,7 @@ function ChatLayout({ children, type }: ChatLayoutProps) {
 
     return (
         <div className='flex h-screen bg-gray-100'>
-            <ChatList />
+            <ChatList type={type} />
             <div className='flex-1 h-full flex flex-col bg-white shadow-lg overflow-hidden'>
                 <Navbar
                 />
