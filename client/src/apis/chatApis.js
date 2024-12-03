@@ -50,9 +50,9 @@ export const sendMessageApi = async (requestBody, setIsNewChat, setChatSessions,
             return { message: 'Error retrieving response from server.' };
         }
 
-        toast.success('Message sent successfully!', {
-            autoClose: 2000
-        });
+        // toast.success('Message sent successfully!', {
+        //     autoClose: 2000
+        // });
         console.log(response.data)
         if (userId) {
             setIsNewChat(false)
@@ -94,9 +94,9 @@ export const sendDateMessageApi = async (requestBody) => {
             return { message: 'Error retrieving response from server.' };
         }
 
-        toast.success('Message sent successfully!', {
-            autoClose: 2000
-        });
+        // toast.success('Message sent successfully!', {
+        //     autoClose: 2000
+        // });
         console.log(response.data)
         return response.data;
     } catch (error) {
