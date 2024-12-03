@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useUserContext } from '@/context/context';
 import { handleLogout } from '@/apis/userApis';
 import { useRouter } from 'next/navigation';
+import { FaRegUserCircle } from 'react-icons/fa';
 
 function Navbar() {
   const router = useRouter();
@@ -95,26 +96,31 @@ function Navbar() {
             ) : (
               <button
                 type="button"
-                className="text-gray-600 focus:outline-none focus:text-blue-800"
+                className="text-gray-600 flex items-center focus:outline-none focus:text-blue-800"
+                onClick={toggleDropdown}
               >
-                <svg
-                  className="h-6 w-6"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
+                <FaRegUserCircle size={28} className='text-blue-800' />
               </button>
             )}
             {/* Dropdown Menu */}
-            {dropdownOpen && (
+            {dropdownOpen && !isLoggedIn && (
+              <div className="absolute top-12 right-0 bg-white border shadow-md rounded-md w-40">
+                <Link
+                  href="/login"
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/signup"
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            )}
+            {/* Dropdown Menu */}
+            {dropdownOpen && isLoggedIn && (
               <div className="absolute top-12 right-0 bg-white border shadow-md rounded-md w-40">
                 <Link
                   href="/chat"

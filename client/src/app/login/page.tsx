@@ -59,7 +59,7 @@ function Login() {
           <Image src={logo} alt="Logo" className='h-full w-60 rounded-md' />
         </div> */}
         <div className="flex flex-col gap-8 items-center bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-          <h2 className="text-3xl font-semibold text-gray-700">Welcome back</h2>
+          <h2 className="text-2xl sm:text-3xl font-semibold text-gray-700">Welcome back</h2>
           <form
             className="w-full flex flex-col gap-5 text-gray-700"
             onSubmit={onSubmit}

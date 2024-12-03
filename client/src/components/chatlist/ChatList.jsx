@@ -52,7 +52,7 @@ function ChatList({ type = 'c' }) {
                     </div>
                 )}
                 <div
-                    className=" flex items-center justify-end p-1 rounded-full bg-gray-300 hover:bg-gray-400 cursor-pointer z-1000 text-white"
+                    className=" flex items-center justify-end p-1 rounded-full bg-gray-400 hover:bg-gray-500 cursor-pointer z-1000 text-white"
                     onClick={toggleSidebar}
                 >
                     {isCollapsed ? <IoIosArrowForward size={16} /> : <IoIosArrowBack size={16} />}
