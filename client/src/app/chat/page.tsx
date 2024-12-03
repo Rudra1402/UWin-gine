@@ -47,7 +47,7 @@ function Page() {
     const [threadId, setThreadId] = useState<string>('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [isPageLoading, setIsPageLoading] = useState(true);
-    const {isNewChat, setIsNewChat, setChatSessions, setCurrentSession, currentSession} = useUserContext();
+    const { isNewChat, setIsNewChat, setChatSessions, setCurrentSession, currentSession } = useUserContext();
 
     useEffect(() => {
         if (isNewChat) {
@@ -66,7 +66,7 @@ function Page() {
 
     const fetchChatHistory = async (threadId: string) => {
         console.log("New Chat", isNewChat)
-        if (isNewChat){
+        if (isNewChat) {
             setMessages([])
             return;
         }
@@ -181,6 +181,9 @@ function Page() {
                 </div>
                 :
                 <div className='flex flex-col gap-4 h-[calc(100%-60px)] overflow-auto pt-3 px-4'>
+                    <div className='text-center text-sm text-red-500 font-semibold bg-red-50 p-2 rounded shadow-md'>
+                        Note: Uwingine may not provide an accurate answer always. Please confirm using sources.
+                    </div>
                     {messages.length === 0 ? (
                         <div className="text-center font-semibold text-3xl mb-6 text-blue-700 h-full w-full flex flex-col gap-4 items-center justify-center">
                             <div className='text-blue-600 font-semibold text-2xl leading-none mb-2'>Sample Prompts</div>
@@ -217,24 +220,24 @@ function Page() {
                                                     <div className='flex items-center gap-2 text-gray-600'>
                                                         <GrResources className="text-lg" />{" Top Sources"}
                                                     </div>
-                                                    {/* Display only the first reference with sorted pages */}  
+                                                    {/* Display only the first reference with sorted pages */}
                                                     <div className='flex gap-2 w-full'>
                                                         {message.references.slice(0, 2).map((reference, index) => (
                                                             <Link
                                                                 key={index}
                                                                 href={reference.link}
                                                                 target='_blank'
-                                                                className='flex flex-col p-2 min-w-[48%] max-w-[48%] bg-gray-100 border rounded-md shadow text-gray-700 hover:bg-blue-50'
-                                                                >
-                                                                    <p className="font-semibold text-blue-600 text-ellipsis overflow-hidden line-clamp-1">
-                                                                        {reference.title}
-                                                                    </p>
-                                                                    <p className="text-sm text-gray-500">
-                                                                        Pages: {reference.pages.sort((a, b) => a - b).join(", ")}
-                                                                    </p>
+                                                                className='flex flex-col p-2 min-w-[33%] max-w-[33%] bg-gray-100 border rounded-md shadow text-gray-700 hover:bg-blue-50'
+                                                            >
+                                                                <p className="font-semibold text-blue-600 text-ellipsis overflow-hidden line-clamp-1">
+                                                                    {reference.title}
+                                                                </p>
+                                                                <p className="text-sm text-gray-500">
+                                                                    Pages: {reference.pages.sort((a, b) => a - b).join(", ")}
+                                                                </p>
                                                             </Link>
                                                         ))}
-                                                        </div>
+                                                    </div>
                                                 </div>
                                             )}
                                             <div className='flex flex-col items-start justify-center gap-1 text-gray-600 mt-2'>
@@ -252,35 +255,30 @@ function Page() {
                     <div ref={messagesEndRef} />
                 </div>
             }
-            <div className='flex items-center gap-2 h-12 w-full p-4 mb-2.5'>
-                <input
-                    id='chat-message'
-                    name='chat-message'
-                    type="text"
-                    className='flex-1 rounded-md p-3 border border-gray-300 bg-gray-100 text-gray-700'
-                    placeholder='Write your message...'
-                    value={currentMessage}
-                    onChange={(e) => setCurrentMessage(e.target.value)}
-                    onKeyPress={(event) => {
-                        if (event.key === 'Enter' && !event.shiftKey) {
-                            event.preventDefault();
-                            sendMessage();
-                        }
-                    }}
-                />
-                <button
-                    className='border rounded-md p-3 bg-gray-100 border-gray-300'
-                    onClick={() => sendMessage(currentMessage)}
-                    disabled={isSending}
-                >
-                    <IoSend className='text-xl text-blue-600' />
-                </button>
-            </div>
-            <div className="flex justify-center">
-                <p className="text-sm text-gray-500 mb-1 ml-2">
-                    Uwingine may not provide an accurate answer always. Please confirm using sources.
-                </p>
-            </div>
+                <div className='flex items-center gap-2 h-12 w-full p-4 mb-2.5'>
+                    <input
+                        id='chat-message'
+                        name='chat-message'
+                        type="text"
+                        className='flex-1 rounded-md p-3 border border-gray-300 bg-gray-100 text-gray-700'
+                        placeholder='Write your message...'
+                        value={currentMessage}
+                        onChange={(e) => setCurrentMessage(e.target.value)}
+                        onKeyPress={(event) => {
+                            if (event.key === 'Enter' && !event.shiftKey) {
+                                event.preventDefault();
+                                sendMessage();
+                            }
+                        }}
+                    />
+                    <button
+                        className='border rounded-md p-3 bg-gray-100 border-gray-300'
+                        onClick={() => sendMessage(currentMessage)}
+                        disabled={isSending}
+                    >
+                        <IoSend className='text-xl text-blue-600' />
+                    </button>
+                </div>
         </ChatLayout>
     );
 }
