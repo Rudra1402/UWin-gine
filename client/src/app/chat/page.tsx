@@ -215,21 +215,26 @@ function Page() {
                                             {message.references && message.references.length > 0 && (
                                                 <div className='flex flex-col items-start justify-center w-full gap-1'>
                                                     <div className='flex items-center gap-2 text-gray-600'>
-                                                        <GrResources className="text-lg" />{"Sources"}
+                                                        <GrResources className="text-lg" />{" Top Sources"}
                                                     </div>
-                                                    {/* Display only the first reference with sorted pages */}
-                                                    <div className='flex flex-col gap-2 w-full'>
-                                                        <Link
-                                                            href={message.references[0].link}
-                                                            target='_blank'
-                                                            className='flex flex-col p-2 min-w-[33%] max-w-[33%] bg-gray-100 border rounded-md shadow text-gray-700 hover:bg-blue-50'
-                                                        >
-                                                            <p className="font-semibold text-blue-600 text-ellipsis overflow-hidden line-clamp-1">{message.references[0].title}</p>
-                                                            <p className="text-sm text-gray-500">
-                                                                Pages: {message.references[0].pages.sort((a, b) => a - b).join(", ")}
-                                                            </p>
-                                                        </Link>
-                                                    </div>
+                                                    {/* Display only the first reference with sorted pages */}  
+                                                    <div className='flex gap-2 w-full'>
+                                                        {message.references.slice(0, 2).map((reference, index) => (
+                                                            <Link
+                                                                key={index}
+                                                                href={reference.link}
+                                                                target='_blank'
+                                                                className='flex flex-col p-2 min-w-[48%] max-w-[48%] bg-gray-100 border rounded-md shadow text-gray-700 hover:bg-blue-50'
+                                                                >
+                                                                    <p className="font-semibold text-blue-600 text-ellipsis overflow-hidden line-clamp-1">
+                                                                        {reference.title}
+                                                                    </p>
+                                                                    <p className="text-sm text-gray-500">
+                                                                        Pages: {reference.pages.sort((a, b) => a - b).join(", ")}
+                                                                    </p>
+                                                            </Link>
+                                                        ))}
+                                                        </div>
                                                 </div>
                                             )}
                                             <div className='flex flex-col items-start justify-center gap-1 text-gray-600 mt-2'>
