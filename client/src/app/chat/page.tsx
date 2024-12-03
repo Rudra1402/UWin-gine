@@ -276,6 +276,11 @@ function Page() {
                     <IoSend className='text-xl text-blue-600' />
                 </button>
             </div>
+            <div className="flex justify-center">
+                <p className="text-sm text-gray-500 mb-1 ml-2">
+                    Uwingine may not provide an accurate answer always. Please confirm using sources.
+                </p>
+            </div>
         </ChatLayout>
     );
 }
