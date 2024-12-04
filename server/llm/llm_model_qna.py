@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from langchain_postgres import PGVector
+from langchain_openai import ChatOpenAI
 from langchain_postgres.vectorstores import PGVector
 from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
@@ -121,15 +122,17 @@ class ChatModelQnA():
         self._hf_api_key = os.getenv(key=key_hf)
         os.environ["LANGCHAIN_TRACING_V2"] = "true"
         os.environ["LANGCHAIN_API_KEY"] = os.getenv(key="LANGCHAIN_API_KEY")
+        os.environ["OPENAI_API_KEY"] = os.getenv(key="OPENAI_API_KEY")
         
     def _initialize_model(
             self, 
             model_name: str, 
             temperature: float,
             embedding_model_name: str):
-        self._model_name = model_name
         self._temperature = temperature
-        self._model = ChatGroq(model=self._model_name, groq_api_key=self._groq_api_key, temperature=self._temperature)
+        # self._model_name = model_name
+        self._model = ChatOpenAI(model="gpt-4o",temperature=self._temperature)
+        # self._model = ChatGroq(model=self._model_name, groq_api_key=self._groq_api_key, temperature=self._temperature)
         self._embeddings = HuggingFaceEmbeddings(model_name=embedding_model_name)
     
     def _initialize_retriever_chain(
